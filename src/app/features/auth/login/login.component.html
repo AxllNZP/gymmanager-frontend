@@ -1,0 +1,79 @@
+<div class="login-container">
+
+  <!-- Fondo animado -->
+  <div class="bg-animation">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+
+  <div class="login-card">
+
+    <!-- Logo -->
+    <div class="login-header">
+      <div class="logo-icon">
+        <mat-icon>fitness_center</mat-icon>
+      </div>
+      <h1>OLYMPUS <span>GYM</span></h1>
+      <p>Sistema de Gestión</p>
+    </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
+      <mat-form-field appearance="outline">
+        <mat-label>Correo electrónico</mat-label>
+        <input matInput type="email"
+               formControlName="email"
+               placeholder="correo@ejemplo.com"
+               autocomplete="email">
+        <mat-icon matPrefix>email</mat-icon>
+        @if (loginForm.get('email')?.hasError('required') &&
+             loginForm.get('email')?.touched) {
+          <mat-error>El correo es obligatorio</mat-error>
+        }
+        @if (loginForm.get('email')?.hasError('email')) {
+          <mat-error>Ingrese un correo válido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Contraseña</mat-label>
+        <input matInput
+               [type]="hidePassword ? 'password' : 'text'"
+               formControlName="password"
+               autocomplete="current-password">
+        <mat-icon matPrefix>lock</mat-icon>
+        <button mat-icon-button matSuffix type="button"
+                (click)="hidePassword = !hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (loginForm.get('password')?.hasError('required') &&
+             loginForm.get('password')?.touched) {
+          <mat-error>La contraseña es obligatoria</mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-raised-button
+              type="submit"
+              class="login-btn"
+              [disabled]="loginForm.invalid || loading">
+        @if (loading) {
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Ingresando...</span>
+        } @else {
+          <ng-container>
+            <mat-icon>login</mat-icon>
+            <span>Ingresar</span>
+          </ng-container>
+        }
+      </button>
+
+    </form>
+
+    <div class="login-footer">
+      <p>Olympus Gym © 2026 — Lima, Perú</p>
+    </div>
+
+  </div>
+</div>
