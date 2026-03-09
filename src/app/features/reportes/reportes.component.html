@@ -1,1 +1,320 @@
-<p>reportes works!</p>
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Reportes</h1>
+      <p class="page-subtitle">Análisis y exportación de datos</p>
+    </div>
+  </div>
+
+  <!-- Filtro de fechas + Exportar -->
+  <div class="filtro-card">
+    <form [formGroup]="filtroForm" class="filtro-form">
+
+      <mat-form-field appearance="outline" class="fecha-field">
+        <mat-label>Fecha Inicio</mat-label>
+        <input matInput formControlName="inicio" type="date">
+        <mat-icon matPrefix>calendar_today</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="fecha-field">
+        <mat-label>Fecha Fin</mat-label>
+        <input matInput formControlName="fin" type="date">
+        <mat-icon matPrefix>calendar_today</mat-icon>
+      </mat-form-field>
+
+      <button mat-raised-button class="primary-btn"
+              (click)="buscarPagos()"
+              [disabled]="filtroForm.invalid || loadingPagos">
+        <mat-icon>search</mat-icon>
+        Buscar
+      </button>
+
+    </form>
+
+    <div class="export-actions">
+      <button mat-stroked-button class="export-btn pdf-btn"
+              (click)="exportarPdf()"
+              [disabled]="exportandoPdf || filtroForm.invalid"
+              matTooltip="Exportar a PDF">
+        @if (exportandoPdf) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          <mat-icon>picture_as_pdf</mat-icon>
+        }
+        PDF
+      </button>
+
+      <button mat-stroked-button class="export-btn excel-btn"
+              (click)="exportarExcel()"
+              [disabled]="exportandoExcel || filtroForm.invalid"
+              matTooltip="Exportar a Excel">
+        @if (exportandoExcel) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          <mat-icon>table_view</mat-icon>
+        }
+        Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Resumen total -->
+  @if (pagos.length > 0) {
+    <div class="resumen-card">
+      <div class="resumen-item">
+        <mat-icon>receipt_long</mat-icon>
+        <div>
+          <span class="resumen-label">Total de pagos en el período</span>
+          <span class="resumen-valor">{{ pagos.length }} transacciones</span>
+        </div>
+      </div>
+      <div class="resumen-divider"></div>
+      <div class="resumen-item">
+        <mat-icon>attach_money</mat-icon>
+        <div>
+          <span class="resumen-label">Total recaudado</span>
+          <span class="resumen-valor highlight">
+            S/. {{ totalRecaudado | number:'1.2-2' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Tabs -->
+  <mat-tab-group class="tabs-container">
+
+    <!-- Tab Pagos -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>payments</mat-icon>
+        <span style="margin-left:6px">
+          Pagos ({{ dataSourcePagos.data.length }})
+        </span>
+      </ng-template>
+
+      @if (loadingPagos) {
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (dataSourcePagos.data.length === 0) {
+        <div class="empty-state">
+          <mat-icon>receipt_long</mat-icon>
+          <p>No hay pagos en el período seleccionado</p>
+        </div>
+      } @else {
+        <table mat-table [dataSource]="dataSourcePagos" class="gym-table">
+
+          <ng-container matColumnDef="cliente">
+            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="client-cell">
+                <div class="client-avatar">
+                  {{ row.clienteNombre.charAt(0) }}
+                </div>
+                <div>
+                  <span class="client-name">
+                    {{ row.clienteNombre }} {{ row.clienteApellido }}
+                  </span>
+                  <span class="client-sub">
+                    Cobrado por: {{ row.usuarioRegistroNombre }}
+                  </span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="plan">
+            <th mat-header-cell *matHeaderCellDef>Plan</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="plan-name">{{ row.planNombre }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="metodo">
+            <th mat-header-cell *matHeaderCellDef>Método</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="metodo-cell">
+                <mat-icon>{{ getMetodoIcon(row.metodoPago) }}</mat-icon>
+                {{ row.metodoPago }}
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="monto">
+            <th mat-header-cell *matHeaderCellDef>Monto</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="monto-cell">
+                <span class="monto-valor">
+                  S/. {{ row.monto | number:'1.2-2' }}
+                </span>
+                <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+                  {{ row.estado }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.fechaPago | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnasPagos"></tr>
+          <tr mat-row *matRowDef="let row; columns: columnasPagos;"
+              [class.anulado-row]="row.estado === 'ANULADO'">
+          </tr>
+
+        </table>
+      }
+    </mat-tab>
+
+    <!-- Tab Por Vencer -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>schedule</mat-icon>
+        <span style="margin-left:6px">
+          Por Vencer ({{ dataSourcePorVencer.data.length }})
+        </span>
+      </ng-template>
+
+      @if (loadingPorVencer) {
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (dataSourcePorVencer.data.length === 0) {
+        <div class="empty-state">
+          <mat-icon>check_circle</mat-icon>
+          <p>No hay membresías próximas a vencer</p>
+        </div>
+      } @else {
+        <table mat-table [dataSource]="dataSourcePorVencer" class="gym-table">
+
+          <ng-container matColumnDef="cliente">
+            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="client-cell">
+                <div class="client-avatar warning-avatar">
+                  {{ row.clienteNombre.charAt(0) }}
+                </div>
+                <div>
+                  <span class="client-name">
+                    {{ row.clienteNombre }} {{ row.clienteApellido }}
+                  </span>
+                  <span class="client-sub">DNI: {{ row.clienteDni }}</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="plan">
+            <th mat-header-cell *matHeaderCellDef>Plan</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="plan-name">{{ row.planNombre }}</span>
+              <span class="plan-price">S/. {{ row.planPrecio }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="fechaFin">
+            <th mat-header-cell *matHeaderCellDef>Vence</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="fecha-vence">
+                {{ row.fechaFin | date:'dd/MM/yyyy' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+                {{ row.estado }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnasMembresias"></tr>
+          <tr mat-row *matRowDef="let row; columns: columnasMembresias;"></tr>
+
+        </table>
+      }
+    </mat-tab>
+
+    <!-- Tab Expiradas -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>cancel</mat-icon>
+        <span style="margin-left:6px">
+          Expiradas ({{ dataSourceExpiradas.data.length }})
+        </span>
+      </ng-template>
+
+      @if (loadingExpiradas) {
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (dataSourceExpiradas.data.length === 0) {
+        <div class="empty-state">
+          <mat-icon>check_circle</mat-icon>
+          <p>No hay membresías expiradas</p>
+        </div>
+      } @else {
+        <table mat-table [dataSource]="dataSourceExpiradas" class="gym-table">
+
+          <ng-container matColumnDef="cliente">
+            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="client-cell">
+                <div class="client-avatar danger-avatar">
+                  {{ row.clienteNombre.charAt(0) }}
+                </div>
+                <div>
+                  <span class="client-name">
+                    {{ row.clienteNombre }} {{ row.clienteApellido }}
+                  </span>
+                  <span class="client-sub">DNI: {{ row.clienteDni }}</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="plan">
+            <th mat-header-cell *matHeaderCellDef>Plan</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="plan-name">{{ row.planNombre }}</span>
+              <span class="plan-price">S/. {{ row.planPrecio }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="fechaFin">
+            <th mat-header-cell *matHeaderCellDef>Venció</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="fecha-expirada">
+                {{ row.fechaFin | date:'dd/MM/yyyy' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+                {{ row.estado }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columnasMembresias"></tr>
+          <tr mat-row *matRowDef="let row; columns: columnasMembresias;"></tr>
+
+        </table>
+      }
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

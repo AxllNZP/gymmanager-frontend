@@ -1,1 +1,215 @@
-<p>usuarios works!</p>
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Usuarios</h1>
+      <p class="page-subtitle">Gestión de accesos al sistema</p>
+    </div>
+    <button mat-raised-button class="primary-btn"
+            (click)="abrirFormulario()">
+      <mat-icon>person_add</mat-icon>
+      Nuevo Usuario
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  @if (mostrarFormulario) {
+    <div class="form-overlay">
+      <div class="form-card">
+
+        <div class="form-header">
+          <h2>{{ editandoId ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
+          <button mat-icon-button (click)="cerrarFormulario()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="usuarioForm" (ngSubmit)="guardar()" class="form-grid">
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre completo</mat-label>
+            <input matInput formControlName="nombre"
+                   placeholder="Ej: Juan Pérez">
+            <mat-icon matPrefix>person</mat-icon>
+            @if (usuarioForm.get('nombre')?.hasError('required') &&
+                 usuarioForm.get('nombre')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email">
+            <mat-icon matPrefix>email</mat-icon>
+            @if (usuarioForm.get('email')?.hasError('required') &&
+                 usuarioForm.get('email')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+            @if (usuarioForm.get('email')?.hasError('email')) {
+              <mat-error>Email inválido</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>
+              {{ editandoId ? 'Nueva Contraseña (opcional)' : 'Contraseña' }}
+            </mat-label>
+            <input matInput formControlName="password"
+                   [type]="mostrarPassword ? 'text' : 'password'">
+            <button mat-icon-button matSuffix type="button"
+                    (click)="mostrarPassword = !mostrarPassword">
+              <mat-icon>
+                {{ mostrarPassword ? 'visibility_off' : 'visibility' }}
+              </mat-icon>
+            </button>
+            @if (usuarioForm.get('password')?.hasError('minlength')) {
+              <mat-error>Mínimo 8 caracteres</mat-error>
+            }
+            @if (editandoId) {
+              <mat-hint>Dejar vacío para mantener la contraseña actual</mat-hint>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Rol</mat-label>
+            <mat-select formControlName="role">
+              @for (rol of roles; track rol) {
+                <mat-option [value]="rol">
+                  <div class="rol-option">
+                    <mat-icon>{{ getRolIcon(rol) }}</mat-icon>
+                    {{ rol }}
+                  </div>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <div class="form-actions full-width">
+            <button mat-stroked-button type="button"
+                    (click)="cerrarFormulario()" class="cancel-btn">
+              Cancelar
+            </button>
+            <button mat-raised-button type="submit"
+                    class="primary-btn"
+                    [disabled]="usuarioForm.invalid || loading">
+              @if (loading) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>save</mat-icon>
+              }
+              {{ editandoId ? 'Actualizar' : 'Crear Usuario' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar usuario</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (keyup)="filtrar($event)"
+               placeholder="Nombre, email, rol...">
+      </mat-form-field>
+    </div>
+
+    @if (loading) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else {
+
+      <table mat-table [dataSource]="dataSource" matSort class="gym-table">
+
+        <!-- Usuario -->
+        <ng-container matColumnDef="usuario">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="user-cell">
+              <div class="user-avatar" [ngClass]="getRolClass(row.role)">
+                {{ getIniciales(row.nombre) }}
+              </div>
+              <div>
+                <span class="user-name">
+                  {{ row.nombre }}
+                  @if (soyYo(row)) {
+                    <span class="yo-badge">Tú</span>
+                  }
+                </span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Email -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="email-cell">{{ row.email }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Rol -->
+        <ng-container matColumnDef="rol">
+          <th mat-header-cell *matHeaderCellDef>Rol</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="rol-cell" [ngClass]="getRolClass(row.role)">
+              <mat-icon>{{ getRolIcon(row.role) }}</mat-icon>
+              {{ row.role }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="badge"
+                  [ngClass]="row.activo ? 'badge-success' : 'badge-muted'">
+              {{ row.activo ? 'ACTIVO' : 'INACTIVO' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="acciones-cell">
+              <button mat-icon-button
+                      matTooltip="Editar"
+                      (click)="abrirFormulario(row)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              @if (!soyYo(row) && row.activo) {
+                <button mat-icon-button
+                        matTooltip="Desactivar usuario"
+                        class="btn-danger"
+                        (click)="desactivar(row.id)">
+                  <mat-icon>person_off</mat-icon>
+                </button>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas;"
+            [class.inactive-row]="!row.activo">
+        </tr>
+
+      </table>
+
+      <mat-paginator [pageSize]="10"
+                     [pageSizeOptions]="[5, 10, 25]"
+                     showFirstLastButtons>
+      </mat-paginator>
+    }
+  </div>
+</div>

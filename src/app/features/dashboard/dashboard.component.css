@@ -1,0 +1,300 @@
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  color: var(--text-light) !important;
+  border-color: var(--border) !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 0;
+  color: var(--text-muted);
+}
+
+/* Métricas */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.metric-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.metric-icon {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-icon mat-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.metric-clientes .metric-icon { background: rgba(33,150,243,0.15); color: #2196f3; }
+.metric-activas  .metric-icon { background: rgba(76,175,80,0.15);  color: #4caf50; }
+.metric-vencer   .metric-icon { background: rgba(255,152,0,0.15);  color: #ff9800; }
+.metric-expiradas .metric-icon { background: rgba(244,67,54,0.15);  color: #f44336; }
+.metric-asistencias .metric-icon { background: rgba(156,39,176,0.15); color: #9c27b0; }
+.metric-recaudacion .metric-icon { background: rgba(233,69,96,0.15);  color: var(--primary); }
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.metric-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-light);
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.metric-link {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  text-decoration: none;
+}
+
+.metric-link:hover { color: var(--primary); }
+
+/* Summary */
+.summary-card {
+  background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(199,54,82,0.1));
+  border: 1px solid rgba(233,69,96,0.2);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.summary-item mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: var(--primary);
+}
+
+.summary-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.summary-value {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Section */
+.section {
+  margin-bottom: 28px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Table */
+.table-container {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.gym-table {
+  width: 100%;
+  background: transparent !important;
+}
+
+.gym-table th {
+  background: rgba(255,255,255,0.03) !important;
+  color: var(--text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.gym-table td {
+  color: var(--text-light) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+  padding: 14px 16px !important;
+}
+
+.gym-table tr:last-child td {
+  border-bottom: none !important;
+}
+
+.gym-table tr:hover td {
+  background: rgba(255,255,255,0.02) !important;
+}
+
+/* Client cell */
+.client-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.client-avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+
+.client-name {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.client-dni {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.plan-name {
+  display: block;
+  font-size: 14px;
+}
+
+.plan-price {
+  display: block;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--success);
+}

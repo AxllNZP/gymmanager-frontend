@@ -1,1 +1,246 @@
-<p>planes works!</p>
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Planes</h1>
+      <p class="page-subtitle">Gestión de planes de membresía</p>
+    </div>
+    @if (esAdmin()) {
+      <button mat-raised-button class="primary-btn"
+              (click)="abrirFormulario()">
+        <mat-icon>add</mat-icon>
+        Nuevo Plan
+      </button>
+    }
+  </div>
+
+  <!-- Cards de planes activos -->
+  <div class="planes-grid">
+    @for (plan of dataSource.data; track plan.id) {
+      @if (plan.activo) {
+        <div class="plan-card" [ngClass]="getPlanColor(plan.numeroPersonas)">
+          <div class="plan-card-header">
+            <div class="plan-icon-wrap">
+              <mat-icon>{{ getPlanIcon(plan.numeroPersonas) }}</mat-icon>
+            </div>
+            <div class="plan-card-actions">
+              @if (esAdmin()) {
+                <button mat-icon-button
+                        matTooltip="Editar plan"
+                        (click)="abrirFormulario(plan)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              }
+            </div>
+          </div>
+          <h3 class="plan-card-nombre">{{ plan.nombre }}</h3>
+          <p class="plan-card-desc">{{ plan.descripcion || 'Sin descripción' }}</p>
+          <div class="plan-card-personas">
+            <mat-icon>people</mat-icon>
+            {{ plan.numeroPersonas }}
+            {{ plan.numeroPersonas === 1 ? 'persona' : 'personas' }}
+          </div>
+          <div class="plan-card-precio">
+            <span class="precio-moneda">S/.</span>
+            <span class="precio-valor">{{ plan.precio | number:'1.2-2' }}</span>
+            <span class="precio-periodo">/mes</span>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Formulario -->
+  @if (mostrarFormulario) {
+    <div class="form-overlay">
+      <div class="form-card">
+
+        <div class="form-header">
+          <h2>{{ editandoId ? 'Editar Plan' : 'Nuevo Plan' }}</h2>
+          <button mat-icon-button (click)="cerrarFormulario()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="planForm" (ngSubmit)="guardar()" class="form-grid">
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre del Plan</mat-label>
+            <input matInput formControlName="nombre"
+                   placeholder="Ej: Plan Individual">
+            @if (planForm.get('nombre')?.hasError('required') &&
+                 planForm.get('nombre')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Número de Personas</mat-label>
+            <input matInput formControlName="numeroPersonas"
+                   type="number" min="1" max="10">
+            <mat-hint>Máximo 10 personas</mat-hint>
+            @if (planForm.get('numeroPersonas')?.hasError('min')) {
+              <mat-error>Mínimo 1 persona</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Precio Mensual (S/.)</mat-label>
+            <input matInput formControlName="precio"
+                   type="number" min="0" step="0.50">
+            <mat-icon matPrefix>attach_money</mat-icon>
+            @if (planForm.get('precio')?.hasError('required') &&
+                 planForm.get('precio')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción (opcional)</mat-label>
+            <textarea matInput formControlName="descripcion"
+                      rows="3"
+                      placeholder="Beneficios, condiciones, etc.">
+            </textarea>
+          </mat-form-field>
+
+          <div class="form-actions full-width">
+            <button mat-stroked-button type="button"
+                    (click)="cerrarFormulario()" class="cancel-btn">
+              Cancelar
+            </button>
+            <button mat-raised-button type="submit"
+                    class="primary-btn"
+                    [disabled]="planForm.invalid || loading">
+              @if (loading) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>save</mat-icon>
+              }
+              {{ editandoId ? 'Actualizar' : 'Crear Plan' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla todos los planes -->
+  <div class="section-title-row">
+    <h2 class="section-title">Todos los Planes</h2>
+  </div>
+
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar plan</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (keyup)="filtrar($event)" placeholder="Nombre...">
+      </mat-form-field>
+    </div>
+
+    @if (loading) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else {
+
+      <table mat-table [dataSource]="dataSource" matSort class="gym-table">
+
+        <!-- Nombre -->
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Plan</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="plan-cell">
+              <div class="plan-icon-sm"
+                   [ngClass]="getPlanColor(row.numeroPersonas)">
+                <mat-icon>{{ getPlanIcon(row.numeroPersonas) }}</mat-icon>
+              </div>
+              <span class="plan-nombre">{{ row.nombre }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Personas -->
+        <ng-container matColumnDef="personas">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Personas</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="personas-cell">
+              <mat-icon>people</mat-icon>
+              {{ row.numeroPersonas }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Precio -->
+        <ng-container matColumnDef="precio">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Precio</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="precio-cell">
+              S/. {{ row.precio | number:'1.2-2' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Descripción -->
+        <ng-container matColumnDef="descripcion">
+          <th mat-header-cell *matHeaderCellDef>Descripción</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="desc-cell">
+              {{ row.descripcion || '—' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="badge"
+                  [ngClass]="row.activo ? 'badge-success' : 'badge-muted'">
+              {{ row.activo ? 'ACTIVO' : 'INACTIVO' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            @if (esAdmin()) {
+              <div class="acciones-cell">
+                <button mat-icon-button
+                        matTooltip="Editar"
+                        (click)="abrirFormulario(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button
+                        [matTooltip]="row.activo ? 'Desactivar' : 'Activar'"
+                        [class.btn-success]="!row.activo"
+                        [class.btn-danger]="row.activo"
+                        (click)="toggleEstado(row)">
+                  <mat-icon>
+                    {{ row.activo ? 'toggle_on' : 'toggle_off' }}
+                  </mat-icon>
+                </button>
+              </div>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas;"
+            [class.inactive-row]="!row.activo">
+        </tr>
+
+      </table>
+
+      <mat-paginator [pageSize]="10"
+                     [pageSizeOptions]="[5, 10, 25]"
+                     showFirstLastButtons>
+      </mat-paginator>
+    }
+  </div>
+</div>

@@ -1,0 +1,257 @@
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Formulario */
+.form-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.form-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 0;
+}
+
+.form-header h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  padding: 20px 24px 24px;
+}
+
+.full-width { grid-column: 1 / -1; }
+
+.rol-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cancel-btn {
+  color: var(--text-muted) !important;
+  border-color: var(--border) !important;
+}
+
+/* Tabla */
+.table-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.table-toolbar { padding: 16px 16px 0; }
+.search-field { width: 320px; }
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.gym-table {
+  width: 100%;
+  background: transparent !important;
+}
+
+.gym-table th {
+  background: rgba(255,255,255,0.03) !important;
+  color: var(--text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.gym-table td {
+  color: var(--text-light) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+  padding: 12px 16px !important;
+}
+
+.gym-table tr:last-child td { border-bottom: none !important; }
+.gym-table tr:hover td { background: rgba(255,255,255,0.02) !important; }
+.inactive-row { opacity: 0.45; }
+
+/* Celdas */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+}
+
+.rol-admin       { background: linear-gradient(135deg, #e94560, #c73652); }
+.rol-recepcionista { background: linear-gradient(135deg, #2196f3, #1565c0); }
+.rol-contador    { background: linear-gradient(135deg, #4caf50, #2e7d32); }
+.rol-dueno       { background: linear-gradient(135deg, #ff9800, #e65100); }
+
+.user-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.yo-badge {
+  background: rgba(233,69,96,0.15);
+  color: var(--primary);
+  border: 1px solid rgba(233,69,96,0.3);
+  border-radius: 20px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.email-cell {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.rol-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.rol-cell mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.rol-admin.rol-cell {
+  background: rgba(233,69,96,0.1);
+  color: #e94560;
+}
+
+.rol-recepcionista.rol-cell {
+  background: rgba(33,150,243,0.1);
+  color: #2196f3;
+}
+
+.rol-contador.rol-cell {
+  background: rgba(76,175,80,0.1);
+  color: #4caf50;
+}
+
+.rol-dueno.rol-cell {
+  background: rgba(255,152,0,0.1);
+  color: #ff9800;
+}
+
+.intentos-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--warning);
+  font-size: 13px;
+}
+
+.intentos-cell mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.acciones-cell {
+  display: flex;
+  gap: 4px;
+}
+
+.acciones-cell button { color: var(--text-muted) !important; }
+.acciones-cell button:hover { color: var(--text-light) !important; }
+.btn-success { color: var(--success) !important; }
+.btn-danger  { color: var(--danger) !important; }
+
+::ng-deep .mat-mdc-paginator {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border-top: 1px solid var(--border);
+}

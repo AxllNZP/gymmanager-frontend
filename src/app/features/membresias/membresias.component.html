@@ -1,1 +1,229 @@
-<p>membresias works!</p>
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Membresías</h1>
+      <p class="page-subtitle">Control de suscripciones de Olympus Gym</p>
+    </div>
+    <button mat-raised-button class="primary-btn"
+            (click)="abrirFormularioNuevo()">
+      <mat-icon>add_card</mat-icon>
+      Nueva Membresía
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  @if (mostrarFormulario) {
+    <div class="form-overlay">
+      <div class="form-card">
+
+        <div class="form-header">
+          <h2>{{ modoRenovacion ? 'Renovar Membresía' : 'Nueva Membresía' }}</h2>
+          <button mat-icon-button (click)="cerrarFormulario()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="membresiaForm" (ngSubmit)="guardar()" class="form-body">
+
+          <!-- Cliente -->
+          <mat-form-field appearance="outline">
+            <mat-label>Cliente Titular</mat-label>
+            <mat-select formControlName="clienteId">
+              @for (cliente of clientes; track cliente.id) {
+                <mat-option [value]="cliente.id">
+                  {{ cliente.nombre }} {{ cliente.apellido }} — DNI: {{ cliente.dni }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (membresiaForm.get('clienteId')?.hasError('required') &&
+                 membresiaForm.get('clienteId')?.touched) {
+              <mat-error>Seleccione un cliente</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Plan -->
+          <mat-form-field appearance="outline">
+            <mat-label>Plan</mat-label>
+            <mat-select formControlName="planId">
+              @for (plan of planes; track plan.id) {
+                <mat-option [value]="plan.id">
+                  {{ plan.nombre }} — {{ plan.numeroPersonas }} persona(s)
+                  — S/. {{ plan.precio }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (membresiaForm.get('planId')?.hasError('required') &&
+                 membresiaForm.get('planId')?.touched) {
+              <mat-error>Seleccione un plan</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Info del plan seleccionado -->
+          @if (getPlanSeleccionado()) {
+            <div class="plan-info">
+              <mat-icon>info</mat-icon>
+              <span>
+                Plan <strong>{{ getPlanSeleccionado()?.nombre }}</strong>
+                — S/. {{ getPlanSeleccionado()?.precio }}
+                — {{ getPlanSeleccionado()?.numeroPersonas }} persona(s)
+              </span>
+            </div>
+          }
+
+          <!-- Clientes adicionales -->
+          @if (getMaxAdicionales() > 0) {
+            <mat-form-field appearance="outline">
+              <mat-label>
+                Clientes Adicionales (máx. {{ getMaxAdicionales() }})
+              </mat-label>
+              <mat-select formControlName="clientesAdicionalesIds" multiple>
+                @for (cliente of clientes; track cliente.id) {
+                  <mat-option [value]="cliente.id">
+                    {{ cliente.nombre }} {{ cliente.apellido }}
+                    — DNI: {{ cliente.dni }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-hint>
+                Seleccione hasta {{ getMaxAdicionales() }} persona(s) adicional(es)
+              </mat-hint>
+            </mat-form-field>
+          }
+
+          <div class="form-actions">
+            <button mat-stroked-button type="button"
+                    (click)="cerrarFormulario()" class="cancel-btn">
+              Cancelar
+            </button>
+            <button mat-raised-button type="submit"
+                    class="primary-btn"
+                    [disabled]="membresiaForm.invalid || loading">
+              @if (loading) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>{{ modoRenovacion ? 'autorenew' : 'save' }}</mat-icon>
+              }
+              {{ modoRenovacion ? 'Renovar' : 'Crear Membresía' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (keyup)="filtrar($event)"
+               placeholder="Cliente, plan, estado...">
+      </mat-form-field>
+    </div>
+
+    @if (loading) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else {
+
+      <table mat-table [dataSource]="dataSource" matSort class="gym-table">
+
+        <!-- Cliente -->
+        <ng-container matColumnDef="cliente">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="client-cell">
+              <div class="client-avatar">
+                {{ row.clienteNombre.charAt(0) }}
+              </div>
+              <div>
+                <span class="client-name">
+                  {{ row.clienteNombre }} {{ row.clienteApellido }}
+                </span>
+                <span class="client-sub">DNI: {{ row.clienteDni }}</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Plan -->
+        <ng-container matColumnDef="plan">
+          <th mat-header-cell *matHeaderCellDef>Plan</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="plan-name">{{ row.planNombre }}</span>
+            <span class="plan-price">S/. {{ row.planPrecio }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Fechas -->
+        <ng-container matColumnDef="fechas">
+          <th mat-header-cell *matHeaderCellDef>Vigencia</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="fecha-inicio">
+              {{ row.fechaInicio | date:'dd/MM/yyyy' }}
+            </span>
+            <span class="fecha-separator"> → </span>
+            <span class="fecha-fin">
+              {{ row.fechaFin | date:'dd/MM/yyyy' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Adicionales -->
+        <ng-container matColumnDef="adicionales">
+          <th mat-header-cell *matHeaderCellDef>Adicionales</th>
+          <td mat-cell *matCellDef="let row">
+            @if (row.clientesAdicionales?.length > 0) {
+              <span class="badge badge-info">
+                +{{ row.clientesAdicionales.length }} persona(s)
+              </span>
+            } @else {
+              <span class="text-muted">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+              {{ row.estado }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-icon-button
+                    matTooltip="Renovar membresía"
+                    class="btn-renovar"
+                    (click)="abrirRenovacion(row)">
+              <mat-icon>autorenew</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas;"
+            [class.expirada-row]="row.estado === 'EXPIRADA'">
+        </tr>
+
+      </table>
+
+      <mat-paginator [pageSize]="10"
+                     [pageSizeOptions]="[5, 10, 25]"
+                     showFirstLastButtons>
+      </mat-paginator>
+
+    }
+  </div>
+</div>

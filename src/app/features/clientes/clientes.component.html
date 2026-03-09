@@ -1,1 +1,245 @@
-<p>clientes works!</p>
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Clientes</h1>
+      <p class="page-subtitle">Gestión de miembros de Olympus Gym</p>
+    </div>
+    <button mat-raised-button class="primary-btn"
+            (click)="abrirFormulario()">
+      <mat-icon>person_add</mat-icon>
+      Nuevo Cliente
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  @if (mostrarFormulario) {
+    <div class="form-overlay">
+      <div class="form-card">
+
+        <div class="form-header">
+          <h2>{{ editandoId ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
+          <button mat-icon-button (click)="cerrarFormulario()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="clienteForm" (ngSubmit)="guardar()" class="form-grid">
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="nombre">
+            @if (clienteForm.get('nombre')?.hasError('required') &&
+                 clienteForm.get('nombre')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Apellido</mat-label>
+            <input matInput formControlName="apellido">
+            @if (clienteForm.get('apellido')?.hasError('required') &&
+                 clienteForm.get('apellido')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>DNI</mat-label>
+            <input matInput formControlName="dni" maxlength="8">
+            @if (clienteForm.get('dni')?.hasError('required') &&
+                 clienteForm.get('dni')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+            @if (clienteForm.get('dni')?.hasError('minlength')) {
+              <mat-error>El DNI debe tener 8 dígitos</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email">
+            @if (clienteForm.get('email')?.hasError('required') &&
+                 clienteForm.get('email')?.touched) {
+              <mat-error>Obligatorio</mat-error>
+            }
+            @if (clienteForm.get('email')?.hasError('email')) {
+              <mat-error>Email inválido</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Teléfono</mat-label>
+            <input matInput formControlName="telefono">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha de Nacimiento</mat-label>
+            <input matInput formControlName="fechaNacimiento" type="date">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Dirección</mat-label>
+            <input matInput formControlName="direccion">
+          </mat-form-field>
+
+          <!-- Datos físicos -->
+          <div class="section-divider full-width">
+            <span>Datos Físicos (Opcional)</span>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Peso (kg)</mat-label>
+            <input matInput formControlName="peso" type="number">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Talla (m)</mat-label>
+            <input matInput formControlName="talla" type="number" step="0.01">
+          </mat-form-field>
+
+          <!-- Consentimiento datos sensibles -->
+          <div class="consent-section full-width">
+            <mat-checkbox formControlName="consentimientoDatosSensibles"
+                          class="consent-check">
+              Autorizo el registro de datos médicos/sensibles
+            </mat-checkbox>
+          </div>
+
+          @if (clienteForm.get('consentimientoDatosSensibles')?.value) {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Datos Médicos / Condiciones</mat-label>
+              <textarea matInput formControlName="datosMedicos" rows="3"></textarea>
+            </mat-form-field>
+          }
+
+          <div class="form-actions full-width">
+            <button mat-stroked-button type="button"
+                    (click)="cerrarFormulario()" class="cancel-btn">
+              Cancelar
+            </button>
+            <button mat-raised-button type="submit"
+                    class="primary-btn"
+                    [disabled]="clienteForm.invalid || loading">
+              @if (loading) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>save</mat-icon>
+              }
+              {{ editandoId ? 'Actualizar' : 'Guardar' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla -->
+  <div class="table-card">
+
+    <div class="table-toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar cliente</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (keyup)="filtrar($event)"
+               placeholder="Nombre, DNI, email...">
+      </mat-form-field>
+    </div>
+
+    @if (loading) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else {
+
+      <table mat-table [dataSource]="dataSource" matSort class="gym-table">
+
+        <!-- Nombre -->
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="client-cell">
+              <div class="client-avatar">{{ row.nombre.charAt(0) }}</div>
+              <div>
+                <span class="client-name">{{ row.nombre }} {{ row.apellido }}</span>
+                <span class="client-sub">{{ row.email }}</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- DNI -->
+        <ng-container matColumnDef="dni">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>DNI</th>
+          <td mat-cell *matCellDef="let row">{{ row.dni }}</td>
+        </ng-container>
+
+        <!-- Email -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+        </ng-container>
+
+        <!-- Teléfono -->
+        <ng-container matColumnDef="telefono">
+          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.telefono || '—' }}
+          </td>
+        </ng-container>
+
+        <!-- Estado membresía -->
+        <ng-container matColumnDef="estadoMembresia">
+          <th mat-header-cell *matHeaderCellDef>Membresía</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="membresia-cell">
+              <span class="badge" [ngClass]="getBadgeClass(row.estadoMembresia)">
+                {{ row.estadoMembresia || 'SIN MEMBRESÍA' }}
+              </span>
+              @if (row.fechaFinMembresia) {
+                <span class="fecha-fin">
+                  Vence: {{ row.fechaFinMembresia | date:'dd/MM/yyyy' }}
+                </span>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="acciones-cell">
+              <button mat-icon-button
+                      matTooltip="Editar"
+                      (click)="abrirFormulario(row)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              @if (esAdmin()) {
+                <button mat-icon-button
+                        matTooltip="Desactivar"
+                        class="btn-danger"
+                        (click)="desactivar(row.id)">
+                  <mat-icon>person_off</mat-icon>
+                </button>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas;"
+            [class.inactive-row]="!row.activo"></tr>
+
+      </table>
+
+      <mat-paginator [pageSize]="10"
+                     [pageSizeOptions]="[5, 10, 25]"
+                     showFirstLastButtons>
+      </mat-paginator>
+
+    }
+  </div>
+</div>

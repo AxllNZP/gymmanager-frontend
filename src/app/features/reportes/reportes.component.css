@@ -1,0 +1,289 @@
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+/* Filtro */
+.filtro-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filtro-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fecha-field {
+  width: 200px;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 56px;
+}
+
+.export-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.export-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 42px !important;
+}
+
+.pdf-btn {
+  color: #f44336 !important;
+  border-color: #f44336 !important;
+}
+
+.excel-btn {
+  color: #4caf50 !important;
+  border-color: #4caf50 !important;
+}
+
+/* Resumen */
+.resumen-card {
+  background: linear-gradient(135deg,
+    rgba(233,69,96,0.08),
+    rgba(26,26,46,0.5));
+  border: 1px solid rgba(233,69,96,0.2);
+  border-radius: 16px;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.resumen-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.resumen-item mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: var(--primary);
+}
+
+.resumen-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.resumen-valor {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.resumen-valor.highlight {
+  color: var(--primary);
+  font-size: 24px;
+}
+
+.resumen-divider {
+  width: 1px;
+  height: 48px;
+  background: var(--border);
+}
+
+/* Tabs */
+.tabs-container {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+::ng-deep .tabs-container .mat-mdc-tab-header {
+  background: rgba(255,255,255,0.02) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+::ng-deep .tabs-container .mat-mdc-tab {
+  color: var(--text-muted) !important;
+}
+
+::ng-deep .tabs-container .mat-mdc-tab.mdc-tab--active {
+  color: var(--primary) !important;
+}
+
+::ng-deep .tabs-container .mdc-tab-indicator__content--underline {
+  border-color: var(--primary) !important;
+}
+
+/* Loading / Empty */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--text-muted);
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+/* Tabla */
+.gym-table {
+  width: 100%;
+  background: transparent !important;
+}
+
+.gym-table th {
+  background: rgba(255,255,255,0.03) !important;
+  color: var(--text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.gym-table td {
+  color: var(--text-light) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+  padding: 12px 16px !important;
+}
+
+.gym-table tr:last-child td { border-bottom: none !important; }
+.gym-table tr:hover td { background: rgba(255,255,255,0.02) !important; }
+.anulado-row { opacity: 0.45; }
+
+/* Celdas */
+.client-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.client-avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+
+.warning-avatar {
+  background: linear-gradient(135deg, #ff9800, #e65100) !important;
+}
+
+.danger-avatar {
+  background: linear-gradient(135deg, #f44336, #b71c1c) !important;
+}
+
+.client-name {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.client-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.plan-name { display: block; font-size: 14px; }
+.plan-price { display: block; font-size: 12px; color: var(--primary); }
+
+.metodo-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.metodo-cell mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+.monto-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.monto-valor {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.fecha-vence {
+  color: var(--warning);
+  font-weight: 500;
+}
+
+.fecha-expirada {
+  color: var(--danger);
+  font-weight: 500;
+}

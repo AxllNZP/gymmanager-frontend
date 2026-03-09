@@ -1,1 +1,192 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Resumen general de Olympus Gym</p>
+    </div>
+    <div class="header-actions">
+      <a mat-stroked-button routerLink="/membresias" class="action-btn">
+        <mat-icon>card_membership</mat-icon>
+        Ver Membresías
+      </a>
+      <a mat-raised-button routerLink="/pagos" class="primary-btn">
+        <mat-icon>payments</mat-icon>
+        Registrar Pago
+      </a>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando información...</p>
+    </div>
+  } @else {
+
+    <!-- Métricas -->
+    <div class="metrics-grid">
+
+      <div class="metric-card metric-clientes">
+        <div class="metric-icon">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ dashboard?.totalClientes }}</span>
+          <span class="metric-label">Clientes Activos</span>
+        </div>
+        <a routerLink="/clientes" class="metric-link">
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <div class="metric-card metric-activas">
+        <div class="metric-icon">
+          <mat-icon>card_membership</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ dashboard?.membresiasActivas }}</span>
+          <span class="metric-label">Membresías Activas</span>
+        </div>
+        <a routerLink="/membresias" class="metric-link">
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <div class="metric-card metric-vencer">
+        <div class="metric-icon">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ dashboard?.membresiasPorVencer }}</span>
+          <span class="metric-label">Por Vencer (5 días)</span>
+        </div>
+        <a routerLink="/membresias" class="metric-link">
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <div class="metric-card metric-expiradas">
+        <div class="metric-icon">
+          <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ dashboard?.membresiasExpiradas }}</span>
+          <span class="metric-label">Membresías Expiradas</span>
+        </div>
+      </div>
+
+      <div class="metric-card metric-asistencias">
+        <div class="metric-icon">
+          <mat-icon>how_to_reg</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ dashboard?.asistenciasHoy }}</span>
+          <span class="metric-label">Asistencias Hoy</span>
+        </div>
+        <a routerLink="/asistencias" class="metric-link">
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <div class="metric-card metric-recaudacion">
+        <div class="metric-icon">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">
+            S/. {{ dashboard?.recaudacionMesActual | number:'1.2-2' }}
+          </span>
+          <span class="metric-label">Recaudación del Mes</span>
+        </div>
+        <a routerLink="/reportes" class="metric-link">
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Resumen financiero -->
+    <div class="summary-card">
+      <div class="summary-item">
+        <mat-icon>account_balance_wallet</mat-icon>
+        <div>
+          <span class="summary-label">Recaudación Total</span>
+          <span class="summary-value">
+            S/. {{ dashboard?.recaudacionTotal | number:'1.2-2' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Membresías por vencer -->
+    @if (porVencer.length > 0) {
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <mat-icon class="text-warning">warning</mat-icon>
+            Membresías por Vencer
+          </h2>
+          <span class="badge badge-warning">{{ porVencer.length }} pendientes</span>
+        </div>
+
+        <div class="table-container">
+          <table mat-table [dataSource]="porVencer" class="gym-table">
+
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef>Cliente</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="client-cell">
+                  <div class="client-avatar">
+                    {{ row.clienteNombre.charAt(0) }}
+                  </div>
+                  <div>
+                    <span class="client-name">
+                      {{ row.clienteNombre }} {{ row.clienteApellido }}
+                    </span>
+                    <span class="client-dni">DNI: {{ row.clienteDni }}</span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="plan">
+              <th mat-header-cell *matHeaderCellDef>Plan</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="plan-name">{{ row.planNombre }}</span>
+                <span class="plan-price">S/. {{ row.planPrecio }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="fechaFin">
+              <th mat-header-cell *matHeaderCellDef>Vence</th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.fechaFin | date:'dd/MM/yyyy' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+                  {{ row.estado }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasPorVencer"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasPorVencer;"></tr>
+
+          </table>
+        </div>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <mat-icon>check_circle</mat-icon>
+        <p>No hay membresías próximas a vencer</p>
+      </div>
+    }
+
+  }
+</div>
