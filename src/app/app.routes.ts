@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -20,45 +21,53 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard.component')
             .then(m => m.Dashboard)
+        // Todos los roles autenticados pueden ver el dashboard
       },
       {
         path: 'clientes',
+        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA'])],
         loadComponent: () =>
           import('./features/clientes/clientes.component')
             .then(m => m.Clientes)
       },
       {
         path: 'planes',
+        canActivate: [roleGuard(['ADMIN'])],
         loadComponent: () =>
           import('./features/planes/planes.component')
             .then(m => m.Planes)
       },
       {
         path: 'membresias',
+        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA'])],
         loadComponent: () =>
           import('./features/membresias/membresias.component')
             .then(m => m.Membresias)
       },
       {
         path: 'pagos',
+        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA', 'CONTADOR'])],
         loadComponent: () =>
           import('./features/pagos/pagos.component')
             .then(m => m.Pagos)
       },
       {
         path: 'asistencias',
+        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA', 'DUENO'])],
         loadComponent: () =>
           import('./features/asistencias/asistencias.component')
             .then(m => m.Asistencias)
       },
       {
         path: 'reportes',
+        canActivate: [roleGuard(['ADMIN', 'CONTADOR', 'DUENO'])],
         loadComponent: () =>
           import('./features/reportes/reportes.component')
             .then(m => m.Reportes)
       },
       {
         path: 'usuarios',
+        canActivate: [roleGuard(['ADMIN'])],
         loadComponent: () =>
           import('./features/usuarios/usuarios.component')
             .then(m => m.Usuarios)

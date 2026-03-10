@@ -5,11 +5,12 @@ import { ApiResponse } from '../models/auth.model';
 import { DashboardResponse } from '../models/dashboard.model';
 import { PagoResponse } from '../models/pago.model';
 import { MembresiaResponse } from '../models/membresia.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ReporteService {
 
-  private baseUrl = 'http://localhost:8080/api/reportes';
+  private baseUrl = `${environment.apiUrl}/reportes`;
 
   constructor(private http: HttpClient) {}
 

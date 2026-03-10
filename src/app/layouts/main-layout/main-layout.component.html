@@ -5,7 +5,8 @@
     #sidenav
     [opened]="sidebarOpen"
     mode="side"
-    class="sidebar">
+    class="sidebar"
+    [class.sidebar-collapsed]="!sidebarOpen">
 
     <!-- Logo -->
     <div class="sidebar-logo">
@@ -28,6 +29,7 @@
         <a mat-list-item
            [routerLink]="item.route"
            routerLinkActive="active-link"
+           [routerLinkActiveOptions]="{ exact: item.exact }"
            [matTooltip]="!sidebarOpen ? item.label : ''"
            matTooltipPosition="right"
            class="nav-item">
@@ -84,7 +86,7 @@
           <span class="badge badge-info">{{ authService.getRole() }}</span>
         </div>
         <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout()">
+        <button mat-menu-item (click)="confirmarLogout()">
           <mat-icon>logout</mat-icon>
           <span>Cerrar sesión</span>
         </button>

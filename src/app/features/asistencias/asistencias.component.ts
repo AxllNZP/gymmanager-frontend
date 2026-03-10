@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -40,7 +40,7 @@ import { ClienteResponse } from '../../core/models/cliente.model';
   templateUrl: './asistencias.component.html',
   styleUrl: './asistencias.component.css'
 })
-export class Asistencias implements OnInit {
+export class Asistencias implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -68,8 +68,14 @@ export class Asistencias implements OnInit {
 
   ngOnInit(): void {
     this.cargarHoy();
-    this.cargarTodas();
     this.cargarClientes();
+  }
+
+  // ✅ ViewChild solo disponible aquí — no en ngOnInit
+  ngAfterViewInit(): void {
+    this.dataSourceTodas.paginator = this.paginator;
+    this.dataSourceTodas.sort = this.sort;
+    this.cargarTodas();
   }
 
   cargarHoy(): void {
@@ -87,8 +93,6 @@ export class Asistencias implements OnInit {
     this.asistenciaService.listarTodas().subscribe({
       next: (res: any) => {
         this.dataSourceTodas.data = res.data;
-        this.dataSourceTodas.paginator = this.paginator;
-        this.dataSourceTodas.sort = this.sort;
       }
     });
   }
@@ -157,11 +161,6 @@ export class Asistencias implements OnInit {
         );
       }
     });
-  }
-
-  getNombreCliente(id: number): string {
-    const c = this.clientes.find(c => c.id === id);
-    return c ? `${c.nombre} ${c.apellido}` : '';
   }
 
   getBadgeClass(estado: string): string {

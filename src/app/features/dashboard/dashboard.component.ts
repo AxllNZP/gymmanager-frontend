@@ -38,9 +38,11 @@ export class Dashboard implements OnInit {
   constructor(private reporteService: ReporteService) {}
 
   ngOnInit(): void {
+  setTimeout(() => {
     this.cargarDashboard();
     this.cargarPorVencer();
-  }
+  });
+}
 
   cargarDashboard(): void {
     this.reporteService.getDashboard().subscribe({

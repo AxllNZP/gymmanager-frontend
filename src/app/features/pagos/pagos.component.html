@@ -101,13 +101,13 @@
             }
           }
 
-          <!-- Resumen del pago -->
-          @if (pagoForm.get('membresiaId')?.value) {
+          <!-- ✅ CORREGIDO: Resumen usa getMembresiaSeleccionada() -->
+          @if (getMembresiaSeleccionada()) {
             <div class="resumen-pago">
               <div class="resumen-row">
                 <span>Monto del plan</span>
                 <span>
-                  S/. {{ membresiasCliente[0]?.planPrecio | number:'1.2-2' }}
+                  S/. {{ getMembresiaSeleccionada()!.planPrecio | number:'1.2-2' }}
                 </span>
               </div>
               @if (pagoForm.get('descuento')?.value > 0) {

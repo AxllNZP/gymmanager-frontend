@@ -9,6 +9,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthService } from '../../core/services/auth.service';
 
 interface NavItem {
@@ -16,6 +17,7 @@ interface NavItem {
   icon: string;
   route: string;
   roles: string[];
+  exact: boolean;
 }
 
 @Component({
@@ -33,7 +35,8 @@ interface NavItem {
     MatListModule,
     MatMenuModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDialogModule
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
@@ -47,49 +50,57 @@ export class MainLayoutComponent {
       label: 'Dashboard',
       icon: 'dashboard',
       route: '/dashboard',
-      roles: ['ADMIN', 'RECEPCIONISTA', 'CONTADOR', 'DUENO']
+      roles: ['ADMIN', 'RECEPCIONISTA', 'CONTADOR', 'DUENO'],
+      exact: true   // ← Evita que Dashboard quede activo en todas las rutas
     },
     {
       label: 'Clientes',
       icon: 'people',
       route: '/clientes',
-      roles: ['ADMIN', 'RECEPCIONISTA']
+      roles: ['ADMIN', 'RECEPCIONISTA'],
+      exact: false
     },
     {
       label: 'Membresías',
       icon: 'card_membership',
       route: '/membresias',
-      roles: ['ADMIN', 'RECEPCIONISTA']
+      roles: ['ADMIN', 'RECEPCIONISTA'],
+      exact: false
     },
     {
       label: 'Pagos',
       icon: 'payments',
       route: '/pagos',
-      roles: ['ADMIN', 'RECEPCIONISTA', 'CONTADOR']
+      roles: ['ADMIN', 'RECEPCIONISTA', 'CONTADOR'],
+      exact: false
     },
     {
       label: 'Asistencias',
       icon: 'how_to_reg',
       route: '/asistencias',
-      roles: ['ADMIN', 'RECEPCIONISTA', 'DUENO']
+      roles: ['ADMIN', 'RECEPCIONISTA', 'DUENO'],
+      exact: false
     },
     {
       label: 'Planes',
       icon: 'fitness_center',
       route: '/planes',
-      roles: ['ADMIN']
+      roles: ['ADMIN'],
+      exact: false
     },
     {
       label: 'Reportes',
       icon: 'bar_chart',
       route: '/reportes',
-      roles: ['ADMIN', 'CONTADOR', 'DUENO']
+      roles: ['ADMIN', 'CONTADOR', 'DUENO'],
+      exact: false
     },
     {
       label: 'Usuarios',
       icon: 'manage_accounts',
       route: '/usuarios',
-      roles: ['ADMIN']
+      roles: ['ADMIN'],
+      exact: false
     }
   ];
 
@@ -104,7 +115,9 @@ export class MainLayoutComponent {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
-  logout(): void {
-    this.authService.logout();
+  confirmarLogout(): void {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+      this.authService.logout();
+    }
   }
 }

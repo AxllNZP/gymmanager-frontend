@@ -3,11 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/auth.model';
 import { MembresiaRequest, MembresiaResponse, RenovacionRequest } from '../models/membresia.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class MembresiaService {
 
-  private baseUrl = 'http://localhost:8080/api/membresias';
+  private baseUrl = `${environment.apiUrl}/membresias`;
 
   constructor(private http: HttpClient) {}
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -43,7 +43,7 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './pagos.component.html',
   styleUrl: './pagos.component.css'
 })
-export class Pagos implements OnInit {
+export class Pagos implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -79,17 +79,23 @@ export class Pagos implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarPagos();
     this.cargarClientes();
   }
+
+  ngAfterViewInit(): void {
+  this.dataSource.paginator = this.paginator;
+  this.dataSource.sort = this.sort;
+
+  setTimeout(() => {
+    this.cargarPagos();
+  });
+}
 
   cargarPagos(): void {
     this.loading = true;
     this.pagoService.listarTodos().subscribe({
       next: (res: any) => {
         this.dataSource.data = res.data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
         this.loading = false;
       },
       error: () => { this.loading = false; }
@@ -135,10 +141,14 @@ export class Pagos implements OnInit {
     this.membresiasCliente = [];
   }
 
+  // ✅ CORREGIDO: busca la membresía seleccionada, no siempre la primera
+  getMembresiaSeleccionada(): MembresiaResponse | undefined {
+    const membresiaId = this.pagoForm.get('membresiaId')?.value;
+    return this.membresiasCliente.find(m => m.id === membresiaId);
+  }
+
   getMontoFinal(): number {
-    const membresia = this.membresiasCliente.find(
-      m => m.id === this.pagoForm.get('membresiaId')?.value
-    );
+    const membresia = this.getMembresiaSeleccionada();
     const descuento = this.pagoForm.get('descuento')?.value || 0;
     return membresia ? membresia.planPrecio - descuento : 0;
   }

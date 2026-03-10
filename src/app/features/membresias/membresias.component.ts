@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -42,13 +42,7 @@ import { PlanResponse } from '../../core/models/plan.model';
   templateUrl: './membresias.component.html',
   styleUrl: './membresias.component.css'
 })
-export class Membresias implements OnInit {
-  public get membresiaService(): MembresiaService {
-    return this._membresiaService;
-  }
-  public set membresiaService(value: MembresiaService) {
-    this._membresiaService = value;
-  }
+export class Membresias implements OnInit, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -67,7 +61,7 @@ export class Membresias implements OnInit {
   membresiaForm: FormGroup;
 
   constructor(
-    private _membresiaService: MembresiaService,
+    private membresiaService: MembresiaService,
     private clienteService: ClienteService,
     private planService: PlanService,
     private fb: FormBuilder,
@@ -81,27 +75,32 @@ export class Membresias implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarMembresias();
     this.cargarClientes();
     this.cargarPlanes();
   }
 
-  cargarMembresias(): void {
-  this.loading = true;
-  this.membresiaService.listarTodas().subscribe({
-    next: (res: any) => {
-      this.dataSource.data = res.data;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-      this.loading = false;
-    },
-    error: () => { this.loading = false; }
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+    setTimeout(() => {
+    this.cargarMembresias();
   });
-}
+  }
+
+  cargarMembresias(): void {
+    this.loading = true;
+    this.membresiaService.listarTodas().subscribe({
+      next: (res: any) => {
+        this.dataSource.data = res.data;
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
+    });
+  }
 
   cargarClientes(): void {
     this.clienteService.listarActivos().subscribe({
-      next: (res) => { this.clientes = res.data; }
+      next: (res: any) => { this.clientes = res.data; }
     });
   }
 
@@ -173,10 +172,10 @@ export class Membresias implements OnInit {
           this.cargarMembresias();
         },
         error: (err: any) => {
-              this.loading = false;
-              this.snackBar.open(err.error?.message || 'Error al renovar',
-                'Cerrar', { duration: 4000 });
-            }
+          this.loading = false;
+          this.snackBar.open(err.error?.message || 'Error al renovar',
+            'Cerrar', { duration: 4000 });
+        }
       });
     } else {
       const request = {
@@ -192,17 +191,12 @@ export class Membresias implements OnInit {
           this.cargarMembresias();
         },
         error: (err: any) => {
-            this.loading = false;
-            this.snackBar.open(err.error?.message || 'Error al crear',
-              'Cerrar', { duration: 4000 });
+          this.loading = false;
+          this.snackBar.open(err.error?.message || 'Error al crear',
+            'Cerrar', { duration: 4000 });
         }
       });
     }
-  }
-
-  getNombreCliente(id: number): string {
-    const c = this.clientes.find(c => c.id === id);
-    return c ? `${c.nombre} ${c.apellido}` : '';
   }
 
   getBadgeClass(estado: string): string {

@@ -3,11 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/auth.model';
 import { PlanRequest, PlanResponse } from '../models/plan.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PlanService {
 
-  private baseUrl = 'http://localhost:8080/api/planes';
+  private baseUrl = `${environment.apiUrl}/planes`;
 
   constructor(private http: HttpClient) {}
 
