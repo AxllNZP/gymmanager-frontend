@@ -1,4 +1,7 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+// Asistencias tenía el loading flag compartido entre "cargar hoy"
+// y "enviar formulario" — los separamos:
+
+import { Component, OnInit, AfterViewInit, ViewChild, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -13,94 +16,94 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsistenciaService } from '../../core/services/asistencia.service';
 import { ClienteService } from '../../core/services/cliente.service';
 import { AsistenciaResponse } from '../../core/models/asistencia.model';
 import { ClienteResponse } from '../../core/models/cliente.model';
+import { BadgeClassPipe } from '../../shared/pipes/badge-class.pipe';
 
 @Component({
   selector: 'app-asistencias',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatTabsModule
+    CommonModule, ReactiveFormsModule,
+    MatTableModule, MatPaginatorModule, MatSortModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule,
+    MatIconModule, MatSelectModule, MatSnackBarModule,
+    MatTooltipModule, MatProgressSpinnerModule, MatTabsModule,
+    BadgeClassPipe,
   ],
   templateUrl: './asistencias.component.html',
-  styleUrl: './asistencias.component.css'
+  styleUrl: './asistencias.component.css',
 })
 export class Asistencias implements OnInit, AfterViewInit {
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  dataSourceHoy = new MatTableDataSource<AsistenciaResponse>();
+  private readonly destroyRef       = inject(DestroyRef);
+  private readonly asistenciaService = inject(AsistenciaService);
+  private readonly clienteService   = inject(ClienteService);
+  private readonly snackBar         = inject(MatSnackBar);
+  private readonly fb               = inject(FormBuilder);
+
+  dataSourceHoy   = new MatTableDataSource<AsistenciaResponse>();
   dataSourceTodas = new MatTableDataSource<AsistenciaResponse>();
   columnas = ['cliente', 'membresia', 'entrada', 'salida', 'acciones'];
 
-  loading = false;
+  // ✅ Dos flags separados — cada uno con su responsabilidad clara
+  loadingDatos     = false; // ← carga de tablas
+  loadingFormulario = false; // ← envío del formulario
+
   mostrarFormulario = false;
   clientes: ClienteResponse[] = [];
 
-  entradaForm: FormGroup;
-
-  constructor(
-    private asistenciaService: AsistenciaService,
-    private clienteService: ClienteService,
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar
-  ) {
-    this.entradaForm = this.fb.group({
-      clienteId: ['', Validators.required]
-    });
-  }
+  entradaForm: FormGroup = this.fb.group({
+    clienteId: ['', Validators.required],
+  });
 
   ngOnInit(): void {
+    // ✅ Carga de datos en ngOnInit
     this.cargarHoy();
     this.cargarClientes();
   }
 
-  // ✅ ViewChild solo disponible aquí — no en ngOnInit
   ngAfterViewInit(): void {
+    // ✅ Solo ViewChild aquí
     this.dataSourceTodas.paginator = this.paginator;
-    this.dataSourceTodas.sort = this.sort;
+    this.dataSourceTodas.sort      = this.sort;
     this.cargarTodas();
+    // Nota: cargarTodas va aquí porque necesita que sort y paginator
+    // estén asignados ANTES de que lleguen los datos
   }
 
   cargarHoy(): void {
-    this.loading = true;
-    this.asistenciaService.listarHoy().subscribe({
-      next: (res: any) => {
-        this.dataSourceHoy.data = res.data;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; }
-    });
+    this.loadingDatos = true;
+    this.asistenciaService.listarHoy()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.dataSourceHoy.data = res.data;
+          this.loadingDatos = false;
+        },
+        error: () => { this.loadingDatos = false; },
+      });
   }
 
   cargarTodas(): void {
-    this.asistenciaService.listarTodas().subscribe({
-      next: (res: any) => {
-        this.dataSourceTodas.data = res.data;
-      }
-    });
+    this.asistenciaService.listarTodas()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => { this.dataSourceTodas.data = res.data; },
+      });
   }
 
   cargarClientes(): void {
-    this.clienteService.listarActivos().subscribe({
-      next: (res: any) => { this.clientes = res.data; }
-    });
+    this.clienteService.listarActivos()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => { this.clientes = res.data; },
+      });
   }
 
   filtrar(event: Event): void {
@@ -120,56 +123,49 @@ export class Asistencias implements OnInit, AfterViewInit {
 
   registrarEntrada(): void {
     if (this.entradaForm.invalid) return;
-    this.loading = true;
+    this.loadingFormulario = true; // ← solo afecta el botón del formulario
 
-    const request = { clienteId: this.entradaForm.value.clienteId };
-
-    this.asistenciaService.registrarEntrada(request).subscribe({
-      next: (res: any) => {
-        this.snackBar.open(
-          `✅ Entrada registrada para ${res.data.clienteNombre}`,
-          'Cerrar', { duration: 3000 }
-        );
-        this.cerrarFormulario();
-        this.cargarHoy();
-        this.cargarTodas();
-      },
-      error: (err: any) => {
-        this.loading = false;
-        this.snackBar.open(
-          err.error?.message || 'Error al registrar entrada',
-          'Cerrar', { duration: 4000 }
-        );
-      }
-    });
+    this.asistenciaService
+      .registrarEntrada({ clienteId: this.entradaForm.value.clienteId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.snackBar.open(
+            `✅ Entrada registrada para ${res.data.clienteNombre}`,
+            'Cerrar', { duration: 3000 }
+          );
+          this.loadingFormulario = false;
+          this.cerrarFormulario();
+          this.cargarHoy();
+          this.cargarTodas();
+        },
+        error: (err) => {
+          this.loadingFormulario = false;
+          this.snackBar.open(err.error?.message || 'Error al registrar entrada', 'Cerrar', {
+            duration: 4000,
+          });
+        },
+      });
   }
 
   registrarSalida(clienteId: number, nombreCliente: string): void {
-    this.asistenciaService.registrarSalida(clienteId).subscribe({
-      next: () => {
-        this.snackBar.open(
-          `✅ Salida registrada para ${nombreCliente}`,
-          'Cerrar', { duration: 3000 }
-        );
-        this.cargarHoy();
-        this.cargarTodas();
-      },
-      error: (err: any) => {
-        this.snackBar.open(
-          err.error?.message || 'Error al registrar salida',
-          'Cerrar', { duration: 4000 }
-        );
-      }
-    });
-  }
-
-  getBadgeClass(estado: string): string {
-    switch (estado) {
-      case 'ACTIVA': return 'badge-success';
-      case 'POR_VENCER': return 'badge-warning';
-      case 'EXPIRADA': return 'badge-danger';
-      default: return 'badge-muted';
-    }
+    this.asistenciaService.registrarSalida(clienteId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBar.open(
+            `✅ Salida registrada para ${nombreCliente}`,
+            'Cerrar', { duration: 3000 }
+          );
+          this.cargarHoy();
+          this.cargarTodas();
+        },
+        error: (err) => {
+          this.snackBar.open(err.error?.message || 'Error al registrar salida', 'Cerrar', {
+            duration: 4000,
+          });
+        },
+      });
   }
 
   tieneSalida(asistencia: AsistenciaResponse): boolean {

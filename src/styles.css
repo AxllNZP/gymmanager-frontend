@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+/* ─── IMPORTANTE: eliminar @import de fuentes ───────────────────
+   Las fuentes ahora se cargan desde index.html con <link>
+   Dejar solo los estilos base aquí.
+   ─────────────────────────────────────────────────────────────── */
 
 * {
   margin: 0;
@@ -64,13 +67,17 @@ html, body {
 ::-webkit-scrollbar-track { background: var(--secondary); }
 ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
 
-/* Utilities */
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES — Clases reutilizables del sistema de diseño
+   ═══════════════════════════════════════════════════════════════ */
+
 .text-primary { color: var(--primary) !important; }
-.text-muted { color: var(--text-muted) !important; }
+.text-muted   { color: var(--text-muted) !important; }
 .text-success { color: var(--success) !important; }
 .text-warning { color: var(--warning) !important; }
-.text-danger { color: var(--danger) !important; }
+.text-danger  { color: var(--danger) !important; }
 
+/* Badges */
 .badge {
   padding: 4px 10px;
   border-radius: 20px;
@@ -80,8 +87,247 @@ html, body {
   letter-spacing: 0.5px;
 }
 
-.badge-success { background: rgba(76,175,80,0.15); color: #4caf50; }
-.badge-warning { background: rgba(255,152,0,0.15); color: #ff9800; }
+.badge-success { background: rgba(76,175,80,0.15);  color: #4caf50; }
+.badge-warning { background: rgba(255,152,0,0.15);  color: #ff9800; }
 .badge-danger  { background: rgba(244,67,54,0.15);  color: #f44336; }
 .badge-info    { background: rgba(33,150,243,0.15);  color: #2196f3; }
 .badge-muted   { background: rgba(160,160,176,0.15); color: #a0a0b0; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT — Compartido entre todas las feature pages
+   ═══════════════════════════════════════════════════════════════ */
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   BUTTONS — Compartido
+   ═══════════════════════════════════════════════════════════════ */
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cancel-btn {
+  color: var(--text-muted) !important;
+  border-color: var(--border) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM OVERLAY — Modal custom compartido
+   ═══════════════════════════════════════════════════════════════ */
+
+.form-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 0;
+}
+
+.form-header h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE SYSTEM — Compartido
+   ═══════════════════════════════════════════════════════════════ */
+
+.table-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.table-toolbar {
+  padding: 16px 16px 0;
+}
+
+.search-field {
+  width: 320px;
+}
+
+.gym-table {
+  width: 100%;
+  background: transparent !important;
+}
+
+.gym-table th {
+  background: rgba(255,255,255,0.03) !important;
+  color: var(--text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.gym-table td {
+  color: var(--text-light) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+  padding: 12px 16px !important;
+}
+
+.gym-table tr:last-child td { border-bottom: none !important; }
+.gym-table tr:hover td     { background: rgba(255,255,255,0.02) !important; }
+
+/* Paginator — override global (ya necesitaba ::ng-deep, aquí es más limpio) */
+.mat-mdc-paginator {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border-top: 1px solid var(--border);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CLIENT CELL — Patrón avatar + nombre compartido
+   ═══════════════════════════════════════════════════════════════ */
+
+.client-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.client-avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+}
+
+.client-name {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.client-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ESTADOS — Loading y Empty state compartidos
+   ═══════════════════════════════════════════════════════════════ */
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--text-muted);
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIRM DIALOG — Estilos del overlay (deben ser globales porque
+   el dialog se renderiza fuera del árbol de componentes)
+   ═══════════════════════════════════════════════════════════════ */
+
+.confirm-dialog-panel .mat-mdc-dialog-surface {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.6) !important;
+}
+
+.confirm-backdrop {
+  background: rgba(0,0,0,0.7) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SNACKBAR VARIANTS
+   ═══════════════════════════════════════════════════════════════ */
+
+.snack-success .mdc-snackbar__surface {
+  background: rgba(76,175,80,0.15) !important;
+  border: 1px solid rgba(76,175,80,0.3) !important;
+}
+
+.snack-warning .mdc-snackbar__surface {
+  background: rgba(255,152,0,0.15) !important;
+  border: 1px solid rgba(255,152,0,0.3) !important;
+}
+
+.snack-error .mdc-snackbar__surface {
+  background: rgba(244,67,54,0.15) !important;
+  border: 1px solid rgba(244,67,54,0.3) !important;
+}

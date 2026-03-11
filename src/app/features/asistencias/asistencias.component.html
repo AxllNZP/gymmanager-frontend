@@ -40,7 +40,7 @@
                 <mat-option [value]="cliente.id">
                   {{ cliente.nombre }} {{ cliente.apellido }}
                   — DNI: {{ cliente.dni }}
-                  <span class="badge" [ngClass]="getBadgeClass(cliente.estadoMembresia)">
+                  <span class="badge" [ngClass]="cliente.estadoMembresia | badgeClass">
                     {{ cliente.estadoMembresia }}
                   </span>
                 </mat-option>
@@ -59,8 +59,8 @@
             </button>
             <button mat-raised-button type="submit"
                     class="primary-btn"
-                    [disabled]="entradaForm.invalid || loading">
-              @if (loading) {
+                    [disabled]="entradaForm.invalid || loadingFormulario">
+              @if (loadingFormulario) {
                 <mat-spinner diameter="18"></mat-spinner>
               } @else {
                 <mat-icon>login</mat-icon>
@@ -86,7 +86,7 @@
         </span>
       </ng-template>
 
-      @if (loading) {
+      @if (loadingDatos) {
         <div class="loading-container">
           <mat-spinner diameter="40"></mat-spinner>
         </div>
@@ -190,7 +190,7 @@
         <ng-container matColumnDef="membresia">
           <th mat-header-cell *matHeaderCellDef>Membresía</th>
           <td mat-cell *matCellDef="let row">
-            <span class="badge" [ngClass]="getBadgeClass(row.estadoMembresia)">
+            <span class="badge" [ngClass]="row.estadoMembresia | badgeClass">
               {{ row.estadoMembresia }}
             </span>
           </td>

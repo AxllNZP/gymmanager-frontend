@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -12,77 +12,69 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UsuarioService } from '../../core/services/usuario.service';
-import { UsuarioResponse } from '../../core/models/usuario.model';
+import { UsuarioResponse, UsuarioRequest } from '../../core/models/usuario.model';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { filter, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule
+    CommonModule, ReactiveFormsModule,
+    MatTableModule, MatPaginatorModule, MatSortModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule,
+    MatIconModule, MatSelectModule, MatSnackBarModule,
+    MatTooltipModule, MatProgressSpinnerModule,
   ],
   templateUrl: './usuarios.component.html',
-  styleUrl: './usuarios.component.css'
+  styleUrl: './usuarios.component.css',
 })
 export class Usuarios implements OnInit {
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  dataSource = new MatTableDataSource<UsuarioResponse>();
-  columnas = ['usuario', 'email', 'rol', 'estado', 'acciones'];
+  private readonly confirmService = inject(ConfirmService);
+  private readonly destroyRef     = inject(DestroyRef);
+  private readonly usuarioService = inject(UsuarioService);
+  private readonly snackBar       = inject(MatSnackBar);
+  private readonly fb             = inject(FormBuilder);
+  readonly authService            = inject(AuthService);
 
-  loading = false;
+  dataSource = new MatTableDataSource<UsuarioResponse>();
+  columnas   = ['usuario', 'email', 'rol', 'estado', 'acciones'];
+
+  loading           = false;
   mostrarFormulario = false;
   editandoId: number | null = null;
-  mostrarPassword = false;
+  mostrarPassword   = false;
 
-  roles = ['ADMIN', 'RECEPCIONISTA', 'CONTADOR', 'DUENO'];
+  readonly roles = ['ADMIN', 'RECEPCIONISTA', 'CONTADOR', 'DUENO'] as const;
 
-  usuarioForm: FormGroup;
+  usuarioForm: FormGroup = this.fb.group({
+    nombre:   ['', Validators.required],
+    email:    ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    role:     ['RECEPCIONISTA', Validators.required],
+  });
 
-  constructor(
-    private usuarioService: UsuarioService,
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar,
-    public authService: AuthService
-  ) {
-    this.usuarioForm = this.fb.group({
-      nombre: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      role: ['RECEPCIONISTA', Validators.required]
-    });
-  }
-
-  ngOnInit(): void {
-    this.cargarUsuarios();
-  }
+  ngOnInit(): void { this.cargarUsuarios(); }
 
   cargarUsuarios(): void {
     this.loading = true;
-    this.usuarioService.listarTodos().subscribe({
-      next: (res: any) => {
-        this.dataSource.data = res.data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; }
-    });
+    this.usuarioService.listarTodos()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.dataSource.data      = res.data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort      = this.sort;
+          this.loading = false;
+        },
+        error: () => { this.loading = false; },
+      });
   }
 
   filtrar(event: Event): void {
@@ -92,30 +84,31 @@ export class Usuarios implements OnInit {
 
   abrirFormulario(usuario?: UsuarioResponse): void {
     this.mostrarFormulario = true;
+
     if (usuario) {
       this.editandoId = usuario.id;
-      this.usuarioForm.patchValue({
-        nombre: usuario.nombre,
-        email: usuario.email,
-        role: usuario.role,
-        password: ''
-      });
+      this.usuarioForm.patchValue({ ...usuario, password: '' });
+
+      // En edición la contraseña es opcional — quitamos validadores
       this.usuarioForm.get('password')?.clearValidators();
       this.usuarioForm.get('password')?.updateValueAndValidity();
     } else {
       this.editandoId = null;
       this.usuarioForm.reset({ role: 'RECEPCIONISTA' });
-      this.usuarioForm.get('password')?.setValidators(
-        [Validators.required, Validators.minLength(8)]
-      );
+
+      // En creación la contraseña es obligatoria — restauramos validadores
+      this.usuarioForm.get('password')?.setValidators([
+        Validators.required,
+        Validators.minLength(8),
+      ]);
       this.usuarioForm.get('password')?.updateValueAndValidity();
     }
   }
 
   cerrarFormulario(): void {
     this.mostrarFormulario = false;
-    this.editandoId = null;
-    this.mostrarPassword = false;
+    this.editandoId        = null;
+    this.mostrarPassword   = false;
     this.usuarioForm.reset({ role: 'RECEPCIONISTA' });
   }
 
@@ -123,73 +116,92 @@ export class Usuarios implements OnInit {
     if (this.usuarioForm.invalid) return;
     this.loading = true;
 
-    const valor = this.usuarioForm.value;
-    const request: any = {
-      nombre: valor.nombre,
-      email: valor.email,
-      role: valor.role
-    };
+    const { nombre, email, role, password } = this.usuarioForm.value;
 
-    if (valor.password) request.password = valor.password;
+    // Construimos el request de forma type-safe:
+    // password solo se incluye si el usuario lo ingresó (edición lo deja vacío)
+    const request: UsuarioRequest = {
+      nombre,
+      email,
+      role,
+      ...(password ? { password } : {}),
+    };
 
     const operacion = this.editandoId
       ? this.usuarioService.actualizar(this.editandoId, request)
       : this.usuarioService.crear(request);
 
-    operacion.subscribe({
-      next: () => {
-        this.snackBar.open(
-          this.editandoId ? 'Usuario actualizado' : 'Usuario creado',
-          'Cerrar', { duration: 3000 }
-        );
-        this.cerrarFormulario();
-        this.cargarUsuarios();
-      },
-      error: (err: any) => {
-        this.loading = false;
-        this.snackBar.open(
-          err.error?.message || 'Error al guardar',
-          'Cerrar', { duration: 4000 }
-        );
-      }
-    });
+    operacion
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBar.open(
+            this.editandoId ? 'Usuario actualizado' : 'Usuario creado',
+            'Cerrar', { duration: 3000 }
+          );
+          this.cerrarFormulario();
+          this.cargarUsuarios();
+        },
+        error: (err) => {
+          this.loading = false;
+          this.snackBar.open(err.error?.message || 'Error al guardar', 'Cerrar', {
+            duration: 4000,
+          });
+        },
+      });
   }
 
   desactivar(id: number): void {
-    if (!confirm('¿Desactivar este usuario?')) return;
-    this.usuarioService.desactivar(id).subscribe({
+  this.confirmService
+    .danger(
+      'Desactivar usuario',
+      'El usuario perderá acceso al sistema inmediatamente.',
+      'Sí, desactivar'
+    )
+    .pipe(
+      filter(Boolean),
+      switchMap(() => this.usuarioService.desactivar(id)),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe({
       next: () => {
         this.snackBar.open('Usuario desactivado', 'Cerrar', { duration: 3000 });
         this.cargarUsuarios();
-      }
+      },
+      error: (err) => {
+        this.snackBar.open(err.error?.message || 'Error al desactivar', 'Cerrar', {
+          duration: 4000,
+        });
+      },
     });
-  }
+}
 
   getRolIcon(rol: string): string {
-    switch (rol) {
-      case 'ADMIN': return 'admin_panel_settings';
-      case 'RECEPCIONISTA': return 'badge';
-      case 'CONTADOR': return 'calculate';
-      case 'DUENO': return 'business_center';
-      default: return 'person';
-    }
+    const icons: Record<string, string> = {
+      ADMIN:          'admin_panel_settings',
+      RECEPCIONISTA:  'badge',
+      CONTADOR:       'calculate',
+      DUENO:          'business_center',
+    };
+    return icons[rol] ?? 'person';
   }
 
   getRolClass(rol: string): string {
-    switch (rol) {
-      case 'ADMIN': return 'rol-admin';
-      case 'RECEPCIONISTA': return 'rol-recepcionista';
-      case 'CONTADOR': return 'rol-contador';
-      case 'DUENO': return 'rol-dueno';
-      default: return '';
-    }
+    const classes: Record<string, string> = {
+      ADMIN:          'rol-admin',
+      RECEPCIONISTA:  'rol-recepcionista',
+      CONTADOR:       'rol-contador',
+      DUENO:          'rol-dueno',
+    };
+    return classes[rol] ?? '';
   }
 
   getIniciales(nombre: string): string {
     if (!nombre) return '?';
     const partes = nombre.trim().split(' ');
-    if (partes.length >= 2) return partes[0].charAt(0) + partes[1].charAt(0);
-    return partes[0].charAt(0);
+    return partes.length >= 2
+      ? partes[0][0] + partes[1][0]
+      : partes[0][0];
   }
 
   soyYo(usuario: UsuarioResponse): boolean {

@@ -169,7 +169,7 @@
             <ng-container matColumnDef="estado">
               <th mat-header-cell *matHeaderCellDef>Estado</th>
               <td mat-cell *matCellDef="let row">
-                <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+                <span class="badge" [ngClass]="row.estado | badgeClass">
                   {{ row.estado }}
                 </span>
               </td>

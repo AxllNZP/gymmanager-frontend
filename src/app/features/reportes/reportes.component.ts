@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,9 +10,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { ReporteService } from '../../core/services/reporte.service';
 import { PagoResponse } from '../../core/models/pago.model';
 import { MembresiaResponse } from '../../core/models/membresia.model';
+import { BadgeClassPipe } from '../../shared/pipes/badge-class.pipe';
+import { MetodoIconPipe } from '../../shared/pipes/metodo-icon.pipe';
 
 @Component({
   selector: 'app-reportes',
@@ -21,7 +24,6 @@ import { MembresiaResponse } from '../../core/models/membresia.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
@@ -30,14 +32,21 @@ import { MembresiaResponse } from '../../core/models/membresia.model';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatTabsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    BadgeClassPipe,
+    MetodoIconPipe
   ],
   templateUrl: './reportes.component.html',
   styleUrl: './reportes.component.css'
 })
 export class Reportes implements OnInit {
 
-  filtroForm: FormGroup;
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly reporteService = inject(ReporteService);
+  private readonly fb = inject(FormBuilder);
+  private readonly snackBar = inject(MatSnackBar);
+
+  filtroForm!: FormGroup;
 
   pagos: PagoResponse[] = [];
   membresiasExpiradas: MembresiaResponse[] = [];
@@ -58,14 +67,12 @@ export class Reportes implements OnInit {
 
   totalRecaudado = 0;
 
-  constructor(
-    private reporteService: ReporteService,
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar
-  ) {
+  ngOnInit(): void {
+
     const hoy = new Date();
     const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
       .toISOString().split('T')[0];
+
     const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0)
       .toISOString().split('T')[0];
 
@@ -73,119 +80,132 @@ export class Reportes implements OnInit {
       inicio: [primerDia, Validators.required],
       fin: [ultimoDia, Validators.required]
     });
-  }
 
-  ngOnInit(): void {
     this.buscarPagos();
     this.cargarExpiradas();
     this.cargarPorVencer();
   }
 
   buscarPagos(): void {
-    if (this.filtroForm.invalid) return;
-    this.loadingPagos = true;
 
+    if (this.filtroForm.invalid) return;
+
+    this.loadingPagos = true;
     const { inicio, fin } = this.filtroForm.value;
 
-    this.reporteService.getPagosPorPeriodo(inicio, fin).subscribe({
-      next: (res: any) => {
-        this.pagos = res.data;
-        this.dataSourcePagos.data = res.data;
-        this.totalRecaudado = res.data
-          .filter((p: PagoResponse) => p.estado === 'COMPLETADO')
-          .reduce((sum: number, p: PagoResponse) => sum + p.monto, 0);
-        this.loadingPagos = false;
-      },
-      error: () => { this.loadingPagos = false; }
-    });
+    this.reporteService.getPagosPorPeriodo(inicio, fin)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+
+          this.pagos = res.data;
+          this.dataSourcePagos.data = res.data;
+
+          this.totalRecaudado = res.data
+            .filter(p => p.estado === 'COMPLETADO')
+            .reduce((sum, p) => sum + p.monto, 0);
+
+          this.loadingPagos = false;
+        },
+        error: () => { this.loadingPagos = false; }
+      });
   }
 
   cargarExpiradas(): void {
+
     this.loadingExpiradas = true;
-    this.reporteService.getMembresiasExpiradas().subscribe({
-      next: (res: any) => {
-        this.dataSourceExpiradas.data = res.data;
-        this.loadingExpiradas = false;
-      },
-      error: () => { this.loadingExpiradas = false; }
-    });
+
+    this.reporteService.getMembresiasExpiradas()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.dataSourceExpiradas.data = res.data;
+          this.loadingExpiradas = false;
+        },
+        error: () => { this.loadingExpiradas = false; }
+      });
   }
 
   cargarPorVencer(): void {
+
     this.loadingPorVencer = true;
-    this.reporteService.getMembresiasPorVencer().subscribe({
-      next: (res: any) => {
-        this.dataSourcePorVencer.data = res.data;
-        this.loadingPorVencer = false;
-      },
-      error: () => { this.loadingPorVencer = false; }
-    });
+
+    this.reporteService.getMembresiasPorVencer()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.dataSourcePorVencer.data = res.data;
+          this.loadingPorVencer = false;
+        },
+        error: () => { this.loadingPorVencer = false; }
+      });
   }
 
   exportarPdf(): void {
+
     if (this.filtroForm.invalid) return;
+
     this.exportandoPdf = true;
     const { inicio, fin } = this.filtroForm.value;
 
-    this.reporteService.exportarPdf(inicio, fin).subscribe({
-      next: (blob: Blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `reporte-pagos-${inicio}-${fin}.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.exportandoPdf = false;
-        this.snackBar.open('PDF descargado', 'Cerrar', { duration: 3000 });
-      },
-      error: () => {
-        this.exportandoPdf = false;
-        this.snackBar.open('Error al exportar PDF', 'Cerrar', { duration: 3000 });
-      }
-    });
+    this.reporteService.exportarPdf(inicio, fin)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (blob: Blob) => {
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+
+          a.href = url;
+          a.download = `reporte-pagos-${inicio}-${fin}.pdf`;
+          a.click();
+
+          URL.revokeObjectURL(url);
+
+          this.exportandoPdf = false;
+
+          this.snackBar.open('PDF descargado', 'Cerrar', { duration: 3000 });
+        },
+        error: () => {
+
+          this.exportandoPdf = false;
+
+          this.snackBar.open('Error al exportar PDF', 'Cerrar', { duration: 3000 });
+        }
+      });
   }
 
   exportarExcel(): void {
+
     if (this.filtroForm.invalid) return;
+
     this.exportandoExcel = true;
     const { inicio, fin } = this.filtroForm.value;
 
-    this.reporteService.exportarExcel(inicio, fin).subscribe({
-      next: (blob: Blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `reporte-pagos-${inicio}-${fin}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.exportandoExcel = false;
-        this.snackBar.open('Excel descargado', 'Cerrar', { duration: 3000 });
-      },
-      error: () => {
-        this.exportandoExcel = false;
-        this.snackBar.open('Error al exportar Excel', 'Cerrar', { duration: 3000 });
-      }
-    });
-  }
+    this.reporteService.exportarExcel(inicio, fin)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (blob: Blob) => {
 
-  getBadgeClass(estado: string): string {
-    switch (estado) {
-      case 'ACTIVA': return 'badge-success';
-      case 'POR_VENCER': return 'badge-warning';
-      case 'EXPIRADA': return 'badge-danger';
-      case 'COMPLETADO': return 'badge-success';
-      case 'ANULADO': return 'badge-danger';
-      default: return 'badge-muted';
-    }
-  }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
 
-  getMetodoIcon(metodo: string): string {
-    switch (metodo) {
-      case 'EFECTIVO': return 'payments';
-      case 'YAPE': return 'phone_iphone';
-      case 'PLIN': return 'phone_iphone';
-      case 'TRANSFERENCIA': return 'account_balance';
-      default: return 'payments';
-    }
+          a.href = url;
+          a.download = `reporte-pagos-${inicio}-${fin}.xlsx`;
+          a.click();
+
+          URL.revokeObjectURL(url);
+
+          this.exportandoExcel = false;
+
+          this.snackBar.open('Excel descargado', 'Cerrar', { duration: 3000 });
+        },
+        error: () => {
+
+          this.exportandoExcel = false;
+
+          this.snackBar.open('Error al exportar Excel', 'Cerrar', { duration: 3000 });
+        }
+      });
   }
 }

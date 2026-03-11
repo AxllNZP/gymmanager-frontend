@@ -137,7 +137,7 @@
             <th mat-header-cell *matHeaderCellDef>Método</th>
             <td mat-cell *matCellDef="let row">
               <div class="metodo-cell">
-                <mat-icon>{{ getMetodoIcon(row.metodoPago) }}</mat-icon>
+                <mat-icon>{{ row.metodoPago | metodoIcon }}</mat-icon>
                 {{ row.metodoPago }}
               </div>
             </td>
@@ -150,7 +150,7 @@
                 <span class="monto-valor">
                   S/. {{ row.monto | number:'1.2-2' }}
                 </span>
-                <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+                <span class="badge" [ngClass]="row.estado | badgeClass">
                   {{ row.estado }}
                 </span>
               </div>
@@ -231,7 +231,7 @@
           <ng-container matColumnDef="estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
             <td mat-cell *matCellDef="let row">
-              <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+              <span class="badge" [ngClass]="row.estado | badgeClass">
                 {{ row.estado }}
               </span>
             </td>
@@ -302,7 +302,7 @@
           <ng-container matColumnDef="estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
             <td mat-cell *matCellDef="let row">
-              <span class="badge" [ngClass]="getBadgeClass(row.estado)">
+              <span class="badge" [ngClass]="row.estado | badgeClass">
                 {{ row.estado }}
               </span>
             </td>

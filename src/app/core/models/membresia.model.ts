@@ -1,3 +1,11 @@
+// src/app/core/models/membresia.model.ts — COMPLETO
+export interface ClienteAdicional {
+  id: number;
+  nombre: string;
+  apellido: string;
+  dni: string;
+}
+
 export interface MembresiaRequest {
   clienteId: number;
   planId: number;
@@ -23,5 +31,5 @@ export interface MembresiaResponse {
   fechaFin: string;
   estado: string;
   createdAt: string;
-  clientesAdicionales: any[];
+  clientesAdicionales: ClienteAdicional[]; // ← tipado correcto
 }

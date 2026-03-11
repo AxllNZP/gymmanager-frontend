@@ -76,7 +76,7 @@
               @for (metodo of metodosPago; track metodo) {
                 <mat-option [value]="metodo">
                   <div class="metodo-option">
-                    <mat-icon>{{ getMetodoIcon(metodo) }}</mat-icon>
+                    <mat-icon>{{ metodo | metodoIcon }}</mat-icon>
                     {{ metodo }}
                   </div>
                 </mat-option>
@@ -219,7 +219,7 @@
           <th mat-header-cell *matHeaderCellDef>Método</th>
           <td mat-cell *matCellDef="let row">
             <div class="metodo-cell">
-              <mat-icon>{{ getMetodoIcon(row.metodoPago) }}</mat-icon>
+              <mat-icon>{{ row.metodoPago | metodoIcon }}</mat-icon>
               <span>{{ row.metodoPago }}</span>
             </div>
           </td>
@@ -230,8 +230,8 @@
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let row">
             <div class="estado-cell">
-              <span class="badge" [ngClass]="getBadgeClass(row.estado)">
-                {{ row.estado }}
+              <span class="badge" [ngClass]="row.estado | badgeClass">
+<mat-icon>{{ row.metodoPago | metodoIcon }}</mat-icon>
               </span>
               @if (row.correoEnviado) {
                 <mat-icon class="correo-icon"

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -11,75 +11,70 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PlanService } from '../../core/services/plan.service';
 import { PlanResponse } from '../../core/models/plan.model';
 import { AuthService } from '../../core/services/auth.service';
+import { BadgeClassPipe } from '../../shared/pipes/badge-class.pipe';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { filter, switchMap } from 'rxjs';
+// ← MatSlideToggleModule eliminado
 
 @Component({
   selector: 'app-planes',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSnackBarModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatSlideToggleModule
+    CommonModule, ReactiveFormsModule,
+    MatTableModule, MatPaginatorModule, MatSortModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule,
+    MatIconModule, MatSnackBarModule,
+    MatTooltipModule, MatProgressSpinnerModule,
+    BadgeClassPipe,
+    // ← MatSlideToggleModule eliminado
   ],
   templateUrl: './planes.component.html',
-  styleUrl: './planes.component.css'
+  styleUrl: './planes.component.css',
 })
 export class Planes implements OnInit {
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  dataSource = new MatTableDataSource<PlanResponse>();
-  columnas = ['nombre', 'personas', 'precio', 'descripcion', 'estado', 'acciones'];
+  private readonly confirmService = inject(ConfirmService);
+  private readonly destroyRef  = inject(DestroyRef);
+  private readonly planService = inject(PlanService);
+  private readonly snackBar    = inject(MatSnackBar);
+  private readonly fb          = inject(FormBuilder);
+  readonly authService         = inject(AuthService);
 
-  loading = false;
+  dataSource = new MatTableDataSource<PlanResponse>();
+  columnas   = ['nombre', 'personas', 'precio', 'descripcion', 'estado', 'acciones'];
+
+  loading           = false;
   mostrarFormulario = false;
   editandoId: number | null = null;
 
-  planForm: FormGroup;
+  planForm: FormGroup = this.fb.group({
+    nombre:        ['', Validators.required],
+    descripcion:   [''],
+    numeroPersonas: [1, [Validators.required, Validators.min(1), Validators.max(10)]],
+    precio:        ['', [Validators.required, Validators.min(0)]],
+  });
 
-  constructor(
-    private planService: PlanService,
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar,
-    public authService: AuthService
-  ) {
-    this.planForm = this.fb.group({
-      nombre: ['', Validators.required],
-      descripcion: [''],
-      numeroPersonas: [1, [Validators.required, Validators.min(1), Validators.max(10)]],
-      precio: ['', [Validators.required, Validators.min(0)]]
-    });
-  }
-
-  ngOnInit(): void {
-    this.cargarPlanes();
-  }
+  ngOnInit(): void { this.cargarPlanes(); }
 
   cargarPlanes(): void {
     this.loading = true;
-    this.planService.listarTodos().subscribe({
-      next: (res: any) => {
-        this.dataSource.data = res.data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; }
-    });
+    this.planService.listarTodos()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.dataSource.data      = res.data;
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort      = this.sort;
+          this.loading = false;
+        },
+        error: () => { this.loading = false; },
+      });
   }
 
   filtrar(event: Event): void {
@@ -91,12 +86,7 @@ export class Planes implements OnInit {
     this.mostrarFormulario = true;
     if (plan) {
       this.editandoId = plan.id;
-      this.planForm.patchValue({
-        nombre: plan.nombre,
-        descripcion: plan.descripcion,
-        numeroPersonas: plan.numeroPersonas,
-        precio: plan.precio
-      });
+      this.planForm.patchValue(plan);
     } else {
       this.editandoId = null;
       this.planForm.reset({ numeroPersonas: 1 });
@@ -113,37 +103,57 @@ export class Planes implements OnInit {
     if (this.planForm.invalid) return;
     this.loading = true;
 
-    const request = this.planForm.value;
-
     const operacion = this.editandoId
-      ? this.planService.actualizar(this.editandoId, request)
-      : this.planService.crear(request);
+      ? this.planService.actualizar(this.editandoId, this.planForm.value)
+      : this.planService.crear(this.planForm.value);
 
-    operacion.subscribe({
-      next: () => {
-        this.snackBar.open(
-          this.editandoId ? 'Plan actualizado' : 'Plan creado',
-          'Cerrar', { duration: 3000 }
-        );
-        this.cerrarFormulario();
-        this.cargarPlanes();
-      },
-      error: (err: any) => {
-        this.loading = false;
-        this.snackBar.open(
-          err.error?.message || 'Error al guardar',
-          'Cerrar', { duration: 4000 }
-        );
-      }
-    });
+    operacion
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBar.open(
+            this.editandoId ? 'Plan actualizado' : 'Plan creado',
+            'Cerrar', { duration: 3000 }
+          );
+          this.cerrarFormulario();
+          this.cargarPlanes();
+        },
+        error: (err) => {
+          this.loading = false;
+          this.snackBar.open(err.error?.message || 'Error al guardar', 'Cerrar', {
+            duration: 4000,
+          });
+        },
+      });
   }
 
   toggleEstado(plan: PlanResponse): void {
-    const operacion = plan.activo
-      ? this.planService.desactivar(plan.id)
-      : this.planService.activar(plan.id);
+  const config = plan.activo
+    ? {
+        titulo:         'Desactivar plan',
+        mensaje:        `El plan "${plan.nombre}" dejará de estar disponible para nuevas membresías.`,
+        labelConfirmar: 'Desactivar',
+        tipo:           'danger' as const,
+      }
+    : {
+        titulo:         'Activar plan',
+        mensaje:        `El plan "${plan.nombre}" volverá a estar disponible.`,
+        labelConfirmar: 'Activar',
+        tipo:           'info' as const,
+      };
 
-    operacion.subscribe({
+  this.confirmService
+    .confirmar(config)
+    .pipe(
+      filter(Boolean),
+      switchMap(() =>
+        plan.activo
+          ? this.planService.desactivar(plan.id)
+          : this.planService.activar(plan.id)
+      ),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe({
       next: () => {
         this.snackBar.open(
           plan.activo ? 'Plan desactivado' : 'Plan activado',
@@ -151,14 +161,13 @@ export class Planes implements OnInit {
         );
         this.cargarPlanes();
       },
-      error: (err: any) => {
-        this.snackBar.open(
-          err.error?.message || 'Error al cambiar estado',
-          'Cerrar', { duration: 4000 }
-        );
-      }
+      error: (err) => {
+        this.snackBar.open(err.error?.message || 'Error al cambiar estado', 'Cerrar', {
+          duration: 4000,
+        });
+      },
     });
-  }
+}
 
   getPlanIcon(numeroPersonas: number): string {
     if (numeroPersonas === 1) return 'person';
@@ -172,7 +181,5 @@ export class Planes implements OnInit {
     return 'plan-familiar';
   }
 
-  esAdmin(): boolean {
-    return this.authService.hasRole('ADMIN');
-  }
+  esAdmin(): boolean { return this.authService.hasRole('ADMIN'); }
 }
