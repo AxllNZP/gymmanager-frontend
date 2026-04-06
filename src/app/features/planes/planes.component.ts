@@ -29,8 +29,6 @@ import { filter, switchMap } from 'rxjs';
     MatFormFieldModule, MatInputModule, MatButtonModule,
     MatIconModule, MatSnackBarModule,
     MatTooltipModule, MatProgressSpinnerModule,
-    BadgeClassPipe,
-    // ← MatSlideToggleModule eliminado
   ],
   templateUrl: './planes.component.html',
   styleUrl: './planes.component.css',
