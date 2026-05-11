@@ -22,6 +22,7 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component')
             .then(m => m.Dashboard)
         // Todos los roles autenticados pueden ver el dashboard
+        //hola
       },
       {
         path: 'clientes',
