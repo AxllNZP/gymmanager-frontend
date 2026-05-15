@@ -84,42 +84,47 @@
             </mat-select>
           </mat-form-field>
 
-          <!-- Descuento (solo Admin) -->
-          @if (esAdmin()) {
-            <mat-form-field appearance="outline">
-              <mat-label>Descuento (S/.)</mat-label>
-              <input matInput formControlName="descuento"
-                     type="number" min="0">
-              <mat-icon matPrefix>discount</mat-icon>
-            </mat-form-field>
+          <!-- ─── CUPÓN (reemplaza al descuento manual anterior) ─────────── -->
+          <!-- El backend valida si el código es válido y calcula el descuento -->
+          <!-- Si el cupón no existe o está vencido, el backend retorna un 400  -->
+          <mat-form-field appearance="outline">
+            <mat-label>Código de Cupón (opcional)</mat-label>
+            <input matInput
+                   formControlName="cuponCodigo"
+                   placeholder="Ej: GYM10, VERANO2026"
+                   (input)="$any($event.target).value = $any($event.target).value.toUpperCase()">
+            <mat-icon matPrefix>local_offer</mat-icon>
+            <mat-hint>Dejar vacío si no hay cupón</mat-hint>
+          </mat-form-field>
+          <!-- ─────────────────────────────────────────────────────────────── -->
 
-            @if (pagoForm.get('descuento')?.value > 0) {
-              <mat-form-field appearance="outline">
-                <mat-label>Motivo del Descuento</mat-label>
-                <input matInput formControlName="motivoDescuento">
-              </mat-form-field>
-            }
-          }
-
-          <!-- ✅ CORREGIDO: Resumen usa getMembresiaSeleccionada() -->
+          <!-- Resumen del plan seleccionado -->
           @if (getMembresiaSeleccionada()) {
             <div class="resumen-pago">
               <div class="resumen-row">
-                <span>Monto del plan</span>
-                <span>
-                  S/. {{ getMembresiaSeleccionada()!.planPrecio | number:'1.2-2' }}
-                </span>
+                <span>Plan</span>
+                <span>{{ getMembresiaSeleccionada()!.planNombre }}</span>
               </div>
-              @if (pagoForm.get('descuento')?.value > 0) {
+              <div class="resumen-row">
+                <span>Precio base</span>
+                <span>S/. {{ getMembresiaSeleccionada()!.planPrecio | number:'1.2-2' }}</span>
+              </div>
+              @if (pagoForm.get('cuponCodigo')?.value?.trim()) {
                 <div class="resumen-row descuento">
-                  <span>Descuento</span>
-                  <span>- S/. {{ pagoForm.get('descuento')?.value | number:'1.2-2' }}</span>
+                  <span>
+                    <mat-icon style="font-size:14px;width:14px;height:14px">local_offer</mat-icon>
+                    Cupón: {{ pagoForm.get('cuponCodigo')?.value?.toUpperCase() }}
+                  </span>
+                  <span>El descuento se calculará al confirmar</span>
                 </div>
               }
               <div class="resumen-row total">
-                <span>TOTAL A COBRAR</span>
+                <span>MONTO A COBRAR</span>
                 <span class="total-amount">
-                  S/. {{ getMontoFinal() | number:'1.2-2' }}
+                  S/. {{ getMembresiaSeleccionada()!.planPrecio | number:'1.2-2' }}
+                  @if (pagoForm.get('cuponCodigo')?.value?.trim()) {
+                    <span style="font-size:12px;color:var(--success)"> + descuento cupón</span>
+                  }
                 </span>
               </div>
             </div>
@@ -144,7 +149,7 @@
               } @else {
                 <mat-icon>payments</mat-icon>
               }
-              Cobrar S/. {{ getMontoFinal() | number:'1.2-2' }}
+              Registrar Pago
             </button>
           </div>
 
@@ -198,6 +203,13 @@
           <th mat-header-cell *matHeaderCellDef>Plan</th>
           <td mat-cell *matCellDef="let row">
             <span class="plan-name">{{ row.planNombre }}</span>
+            <!-- Mostrar cupón si se aplicó uno -->
+            @if (row.cuponCodigo) {
+              <span class="cupon-badge">
+                <mat-icon>local_offer</mat-icon>
+                {{ row.cuponCodigo }}
+              </span>
+            }
           </td>
         </ng-container>
 
@@ -225,13 +237,14 @@
           </td>
         </ng-container>
 
-        <!-- Estado -->
+        <!-- Estado — CORREGIDO: muestra texto del estado, no ícono del método -->
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let row">
             <div class="estado-cell">
+              <!-- FIX: antes tenía <mat-icon>{{ row.metodoPago | metodoIcon }}</mat-icon> aquí -->
               <span class="badge" [ngClass]="row.estado | badgeClass">
-<mat-icon>{{ row.metodoPago | metodoIcon }}</mat-icon>
+                {{ row.estado }}
               </span>
               @if (row.correoEnviado) {
                 <mat-icon class="correo-icon"

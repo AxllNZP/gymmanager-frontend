@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -9,15 +9,13 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-// ← MatDialogModule y MatDialog eliminados — el Paso 5 los reintroduce
-//   correctamente con un componente de confirmación real
 import { AuthService } from '../../core/services/auth.service';
 import { filter } from 'rxjs/operators';
 import { ConfirmService } from '../../core/services/confirm.service';
 
 interface NavItem {
   label: string;
-  icon: string;
+  icon:  string;
   route: string;
   roles: string[];
   exact: boolean;
@@ -33,33 +31,34 @@ interface NavItem {
     MatIconModule, MatButtonModule,
     MatListModule, MatMenuModule,
     MatDividerModule, MatTooltipModule,
-    // ← MatDialogModule eliminado
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css',
 })
 export class MainLayoutComponent {
 
-
   private readonly confirmService = inject(ConfirmService);
   readonly authService = inject(AuthService);
-  // ← MatDialog eliminado del constructor
 
   sidebarOpen = true;
 
+  // ─── ROLES SINCRONIZADOS CON EL BACKEND ──────────────────────────────────
+  // ADMIN, RECEPCIONISTA, ENTRENADOR (antes CONTADOR), DUENO
+  // Cada ítem solo aparece si el rol activo está en su lista 'roles'
+  // ─────────────────────────────────────────────────────────────────────────
   readonly navItems: NavItem[] = [
     {
       label: 'Dashboard',
       icon:  'dashboard',
       route: '/dashboard',
-      roles: ['ADMIN', 'RECEPCIONISTA', 'CONTADOR', 'DUENO'],
+      roles: ['ADMIN', 'RECEPCIONISTA', 'ENTRENADOR', 'DUENO'],
       exact: true,
     },
     {
       label: 'Clientes',
       icon:  'people',
       route: '/clientes',
-      roles: ['ADMIN', 'RECEPCIONISTA'],
+      roles: ['ADMIN', 'RECEPCIONISTA', 'ENTRENADOR'],
       exact: false,
     },
     {
@@ -73,14 +72,14 @@ export class MainLayoutComponent {
       label: 'Pagos',
       icon:  'payments',
       route: '/pagos',
-      roles: ['ADMIN', 'RECEPCIONISTA', 'CONTADOR'],
+      roles: ['ADMIN', 'RECEPCIONISTA', 'DUENO'],
       exact: false,
     },
     {
       label: 'Asistencias',
       icon:  'how_to_reg',
       route: '/asistencias',
-      roles: ['ADMIN', 'RECEPCIONISTA', 'DUENO'],
+      roles: ['ADMIN', 'RECEPCIONISTA', 'ENTRENADOR', 'DUENO'],
       exact: false,
     },
     {
@@ -91,10 +90,17 @@ export class MainLayoutComponent {
       exact: false,
     },
     {
+      label: 'Cupones',
+      icon:  'local_offer',
+      route: '/cupones',
+      roles: ['ADMIN', 'DUENO'],
+      exact: false,
+    },
+    {
       label: 'Reportes',
       icon:  'bar_chart',
       route: '/reportes',
-      roles: ['ADMIN', 'CONTADOR', 'DUENO'],
+      roles: ['ADMIN', 'DUENO', 'RECEPCIONISTA'],
       exact: false,
     },
     {
@@ -115,14 +121,14 @@ export class MainLayoutComponent {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
-    confirmarLogout(): void {
-  this.confirmService
-    .warning(
-      'Cerrar sesión',
-      '¿Estás seguro de que deseas salir del sistema?',
-      'Sí, salir'
-    )
-    .pipe(filter(Boolean))
-    .subscribe(() => this.authService.logout());
-}
+  confirmarLogout(): void {
+    this.confirmService
+      .warning(
+        'Cerrar sesión',
+        '¿Estás seguro de que deseas salir del sistema?',
+        'Sí, salir'
+      )
+      .pipe(filter(Boolean))
+      .subscribe(() => this.authService.logout());
+  }
 }

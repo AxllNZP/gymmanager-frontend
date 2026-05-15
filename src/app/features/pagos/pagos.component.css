@@ -1,7 +1,8 @@
-.page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
+/* ─── SIN CAMBIOS visuales respecto al original ──────────────────────────────
+   Solo se añade .cupon-badge para mostrar el código de cupón en la tabla.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.page-container { max-width: 1400px; margin: 0 auto; }
 
 .page-header {
   display: flex;
@@ -20,11 +21,7 @@
   margin: 0;
 }
 
-.page-subtitle {
-  color: var(--text-muted);
-  font-size: 14px;
-  margin: 4px 0 0;
-}
+.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 4px 0 0; }
 
 .primary-btn {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
@@ -91,11 +88,7 @@
   font-size: 13px;
 }
 
-.metodo-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.metodo-option { display: flex; align-items: center; gap: 8px; }
 
 /* Resumen pago */
 .resumen-pago {
@@ -117,7 +110,6 @@
 }
 
 .resumen-row:last-child { border-bottom: none; }
-
 .resumen-row.descuento { color: var(--success); }
 
 .resumen-row.total {
@@ -144,24 +136,10 @@
   padding: 8px 0;
 }
 
-.correo-aviso mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: var(--info);
-}
+.correo-aviso mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--info); }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.cancel-btn {
-  color: var(--text-muted) !important;
-  border-color: var(--border) !important;
-}
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.cancel-btn { color: var(--text-muted) !important; border-color: var(--border) !important; }
 
 /* Tabla */
 .table-card {
@@ -174,16 +152,9 @@
 .table-toolbar { padding: 16px 16px 0; }
 .search-field { width: 320px; }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  padding: 48px;
-}
+.loading-container { display: flex; justify-content: center; padding: 48px; }
 
-.gym-table {
-  width: 100%;
-  background: transparent !important;
-}
+.gym-table { width: 100%; background: transparent !important; }
 
 .gym-table th {
   background: rgba(255,255,255,0.03) !important;
@@ -205,11 +176,8 @@
 .gym-table tr:hover td { background: rgba(255,255,255,0.02) !important; }
 .anulado-row { opacity: 0.45; }
 
-.client-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* Celdas */
+.client-cell { display: flex; align-items: center; gap: 12px; }
 
 .client-avatar {
   width: 36px;
@@ -225,19 +193,33 @@
   color: white;
 }
 
-.client-name {
-  display: block;
-  font-weight: 500;
-  font-size: 14px;
+.client-name { display: block; font-weight: 500; font-size: 14px; }
+.client-sub  { display: block; font-size: 12px; color: var(--text-muted); }
+
+.plan-name { font-size: 14px; display: block; }
+
+/* ─── NUEVO: badge de cupón en la tabla ───────────────────────────────────── */
+.cupon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(76,175,80,0.1);
+  color: var(--success);
+  border: 1px solid rgba(76,175,80,0.25);
+  border-radius: 20px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-top: 3px;
 }
 
-.client-sub {
-  display: block;
+.cupon-badge mat-icon {
   font-size: 12px;
-  color: var(--text-muted);
+  width: 12px;
+  height: 12px;
 }
-
-.plan-name { font-size: 14px; }
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 .monto-final {
   display: block;
@@ -247,38 +229,15 @@
   color: var(--primary);
 }
 
-.monto-descuento {
-  display: block;
-  font-size: 11px;
-  color: var(--success);
-}
+.monto-descuento { display: block; font-size: 11px; color: var(--success); }
 
-.metodo-cell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-}
+.metodo-cell { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 
-.metodo-cell mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: var(--text-muted);
-}
+.metodo-cell mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--text-muted); }
 
-.estado-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.estado-cell { display: flex; align-items: center; gap: 8px; }
 
-.correo-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: var(--success);
-}
+.correo-icon { font-size: 16px; width: 16px; height: 16px; color: var(--success); }
 
 .btn-danger { color: var(--text-muted) !important; }
 .btn-danger:hover { color: var(--danger) !important; }

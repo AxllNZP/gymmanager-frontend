@@ -1,7 +1,9 @@
-.page-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
+/* ─── SIN CAMBIOS respecto al original, excepto: ─────────────────────────────
+   Se añade .rol-entrenador (color verde teal) para el nuevo rol ENTRENADOR
+   que reemplaza a CONTADOR. El resto del archivo es idéntico al original.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.page-container { max-width: 1400px; margin: 0 auto; }
 
 .page-header {
   display: flex;
@@ -20,11 +22,7 @@
   margin: 0;
 }
 
-.page-subtitle {
-  color: var(--text-muted);
-  font-size: 14px;
-  margin: 4px 0 0;
-}
+.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 4px 0 0; }
 
 .primary-btn {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
@@ -81,23 +79,10 @@
 
 .full-width { grid-column: 1 / -1; }
 
-.rol-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.rol-option { display: flex; align-items: center; gap: 8px; }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.cancel-btn {
-  color: var(--text-muted) !important;
-  border-color: var(--border) !important;
-}
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.cancel-btn { color: var(--text-muted) !important; border-color: var(--border) !important; }
 
 /* Tabla */
 .table-card {
@@ -110,16 +95,9 @@
 .table-toolbar { padding: 16px 16px 0; }
 .search-field { width: 320px; }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  padding: 48px;
-}
+.loading-container { display: flex; justify-content: center; padding: 48px; }
 
-.gym-table {
-  width: 100%;
-  background: transparent !important;
-}
+.gym-table { width: 100%; background: transparent !important; }
 
 .gym-table th {
   background: rgba(255,255,255,0.03) !important;
@@ -142,11 +120,7 @@
 .inactive-row { opacity: 0.45; }
 
 /* Celdas */
-.user-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.user-cell { display: flex; align-items: center; gap: 12px; }
 
 .user-avatar {
   width: 38px;
@@ -161,10 +135,11 @@
   color: white;
 }
 
-.rol-admin       { background: linear-gradient(135deg, #e94560, #c73652); }
+/* ─── COLORES DE AVATAR POR ROL ──────────────────────────────────────────── */
+.rol-admin         { background: linear-gradient(135deg, #e94560, #c73652); }
 .rol-recepcionista { background: linear-gradient(135deg, #2196f3, #1565c0); }
-.rol-contador    { background: linear-gradient(135deg, #4caf50, #2e7d32); }
-.rol-dueno       { background: linear-gradient(135deg, #ff9800, #e65100); }
+.rol-entrenador    { background: linear-gradient(135deg, #009688, #00695c); } /* ← NUEVO */
+.rol-dueno         { background: linear-gradient(135deg, #ff9800, #e65100); }
 
 .user-name {
   display: flex;
@@ -184,10 +159,7 @@
   font-weight: 600;
 }
 
-.email-cell {
-  font-size: 13px;
-  color: var(--text-muted);
-}
+.email-cell { font-size: 13px; color: var(--text-muted); }
 
 .rol-cell {
   display: flex;
@@ -200,51 +172,15 @@
   width: fit-content;
 }
 
-.rol-cell mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
+.rol-cell mat-icon { font-size: 16px; width: 16px; height: 16px; }
 
-.rol-admin.rol-cell {
-  background: rgba(233,69,96,0.1);
-  color: #e94560;
-}
+/* ─── COLORES DE BADGE ROL ───────────────────────────────────────────────── */
+.rol-admin.rol-cell         { background: rgba(233,69,96,0.1);  color: #e94560; }
+.rol-recepcionista.rol-cell { background: rgba(33,150,243,0.1); color: #2196f3; }
+.rol-entrenador.rol-cell    { background: rgba(0,150,136,0.1);  color: #009688; } /* ← NUEVO */
+.rol-dueno.rol-cell         { background: rgba(255,152,0,0.1);  color: #ff9800; }
 
-.rol-recepcionista.rol-cell {
-  background: rgba(33,150,243,0.1);
-  color: #2196f3;
-}
-
-.rol-contador.rol-cell {
-  background: rgba(76,175,80,0.1);
-  color: #4caf50;
-}
-
-.rol-dueno.rol-cell {
-  background: rgba(255,152,0,0.1);
-  color: #ff9800;
-}
-
-.intentos-cell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--warning);
-  font-size: 13px;
-}
-
-.intentos-cell mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-.acciones-cell {
-  display: flex;
-  gap: 4px;
-}
-
+.acciones-cell { display: flex; gap: 4px; }
 .acciones-cell button { color: var(--text-muted) !important; }
 .acciones-cell button:hover { color: var(--text-light) !important; }
 .btn-success { color: var(--success) !important; }

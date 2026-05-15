@@ -51,7 +51,11 @@ export class Usuarios implements OnInit {
   editandoId: number | null = null;
   mostrarPassword   = false;
 
-  readonly roles = ['ADMIN', 'RECEPCIONISTA', 'CONTADOR', 'DUENO'] as const;
+  // ─── ROLES SINCRONIZADOS CON Role.RoleName DEL BACKEND ───────────────────
+  // CONTADOR eliminado — no existe en el backend desde la migración
+  // ENTRENADOR añadido — reemplaza a CONTADOR
+  // ─────────────────────────────────────────────────────────────────────────
+  readonly roles = ['ADMIN', 'RECEPCIONISTA', 'ENTRENADOR', 'DUENO'] as const;
 
   usuarioForm: FormGroup = this.fb.group({
     nombre:   ['', Validators.required],
@@ -88,15 +92,11 @@ export class Usuarios implements OnInit {
     if (usuario) {
       this.editandoId = usuario.id;
       this.usuarioForm.patchValue({ ...usuario, password: '' });
-
-      // En edición la contraseña es opcional — quitamos validadores
       this.usuarioForm.get('password')?.clearValidators();
       this.usuarioForm.get('password')?.updateValueAndValidity();
     } else {
       this.editandoId = null;
       this.usuarioForm.reset({ role: 'RECEPCIONISTA' });
-
-      // En creación la contraseña es obligatoria — restauramos validadores
       this.usuarioForm.get('password')?.setValidators([
         Validators.required,
         Validators.minLength(8),
@@ -118,8 +118,6 @@ export class Usuarios implements OnInit {
 
     const { nombre, email, role, password } = this.usuarioForm.value;
 
-    // Construimos el request de forma type-safe:
-    // password solo se incluye si el usuario lo ingresó (edición lo deja vacío)
     const request: UsuarioRequest = {
       nombre,
       email,
@@ -152,35 +150,39 @@ export class Usuarios implements OnInit {
   }
 
   desactivar(id: number): void {
-  this.confirmService
-    .danger(
-      'Desactivar usuario',
-      'El usuario perderá acceso al sistema inmediatamente.',
-      'Sí, desactivar'
-    )
-    .pipe(
-      filter(Boolean),
-      switchMap(() => this.usuarioService.desactivar(id)),
-      takeUntilDestroyed(this.destroyRef)
-    )
-    .subscribe({
-      next: () => {
-        this.snackBar.open('Usuario desactivado', 'Cerrar', { duration: 3000 });
-        this.cargarUsuarios();
-      },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'Error al desactivar', 'Cerrar', {
-          duration: 4000,
-        });
-      },
-    });
-}
+    this.confirmService
+      .danger(
+        'Desactivar usuario',
+        'El usuario perderá acceso al sistema inmediatamente.',
+        'Sí, desactivar'
+      )
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.usuarioService.desactivar(id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Usuario desactivado', 'Cerrar', { duration: 3000 });
+          this.cargarUsuarios();
+        },
+        error: (err) => {
+          this.snackBar.open(err.error?.message || 'Error al desactivar', 'Cerrar', {
+            duration: 4000,
+          });
+        },
+      });
+  }
+
+  // ─── HELPERS DE PRESENTACIÓN ─────────────────────────────────────────────
+  // getRolIcon y getRolClass actualizados para incluir ENTRENADOR
+  // ─────────────────────────────────────────────────────────────────────────
 
   getRolIcon(rol: string): string {
     const icons: Record<string, string> = {
       ADMIN:          'admin_panel_settings',
       RECEPCIONISTA:  'badge',
-      CONTADOR:       'calculate',
+      ENTRENADOR:     'fitness_center',   // antes era 'calculate' para CONTADOR
       DUENO:          'business_center',
     };
     return icons[rol] ?? 'person';
@@ -190,7 +192,7 @@ export class Usuarios implements OnInit {
     const classes: Record<string, string> = {
       ADMIN:          'rol-admin',
       RECEPCIONISTA:  'rol-recepcionista',
-      CONTADOR:       'rol-contador',
+      ENTRENADOR:     'rol-entrenador',   // clase nueva — añadir en CSS
       DUENO:          'rol-dueno',
     };
     return classes[rol] ?? '';

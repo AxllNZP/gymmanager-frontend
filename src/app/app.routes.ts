@@ -2,6 +2,20 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
+// ─── ROLES DEL SISTEMA (sincronizados con Role.RoleName en el backend) ────────
+//
+//   ADMIN         — acceso total
+//   RECEPCIONISTA — operaciones diarias (clientes, membresías, pagos, asistencias)
+//   ENTRENADOR    — antes llamado CONTADOR (DataInitializer migra la BD automáticamente)
+//                   puede ver asistencias y clientes, no gestiona pagos
+//   DUENO         — vista gerencial (asistencias, reportes, pagos lectura)
+//
+// CAMBIOS:
+//   - 'CONTADOR' eliminado de todas las rutas (no existe en el backend)
+//   - 'ENTRENADOR' añadido a asistencias y clientes
+//   - Ruta 'cupones' añadida para Fase 2
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -21,11 +35,10 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard.component')
             .then(m => m.Dashboard)
-        // Todos los roles autenticados pueden ver el dashboard
       },
       {
         path: 'clientes',
-        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA'])],
+        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA', 'ENTRENADOR'])],
         loadComponent: () =>
           import('./features/clientes/clientes.component')
             .then(m => m.Clientes)
@@ -46,21 +59,21 @@ export const routes: Routes = [
       },
       {
         path: 'pagos',
-        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA', 'CONTADOR'])],
+        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA', 'DUENO'])],
         loadComponent: () =>
           import('./features/pagos/pagos.component')
             .then(m => m.Pagos)
       },
       {
         path: 'asistencias',
-        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA', 'DUENO'])],
+        canActivate: [roleGuard(['ADMIN', 'RECEPCIONISTA', 'ENTRENADOR', 'DUENO'])],
         loadComponent: () =>
           import('./features/asistencias/asistencias.component')
             .then(m => m.Asistencias)
       },
       {
         path: 'reportes',
-        canActivate: [roleGuard(['ADMIN', 'CONTADOR', 'DUENO'])],
+        canActivate: [roleGuard(['ADMIN', 'DUENO', 'RECEPCIONISTA'])],
         loadComponent: () =>
           import('./features/reportes/reportes.component')
             .then(m => m.Reportes)
@@ -71,6 +84,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/usuarios/usuarios.component')
             .then(m => m.Usuarios)
+      },
+      {
+        path: 'cupones',
+        canActivate: [roleGuard(['ADMIN', 'DUENO'])],
+        loadComponent: () =>
+          import('./features/cupones/cupones.component')
+            .then(m => m.Cupones)
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

@@ -43,14 +43,14 @@ export class Pagos implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  private readonly confirmService = inject(ConfirmService);
+  private readonly confirmService   = inject(ConfirmService);
   private readonly destroyRef       = inject(DestroyRef);
   private readonly pagoService      = inject(PagoService);
   private readonly clienteService   = inject(ClienteService);
   private readonly membresiaService = inject(MembresiaService);
   private readonly snackBar         = inject(MatSnackBar);
   private readonly fb               = inject(FormBuilder);
-  readonly authService              = inject(AuthService); // public para el template
+  readonly authService              = inject(AuthService);
 
   dataSource = new MatTableDataSource<PagoResponse>();
   columnas   = ['cliente', 'plan', 'monto', 'metodo', 'estado', 'fecha', 'acciones'];
@@ -63,25 +63,28 @@ export class Pagos implements OnInit, AfterViewInit {
 
   readonly metodosPago = ['EFECTIVO', 'YAPE', 'PLIN', 'TRANSFERENCIA'] as const;
 
+  // ─── FORMULARIO ACTUALIZADO ───────────────────────────────────────────────
+  // ELIMINADOS: descuento, motivoDescuento  (el backend los ignora)
+  // AÑADIDO:    cuponCodigo                 (lo que el backend realmente espera)
+  //
+  // El backend calcula el descuento desde el cupón internamente.
+  // El recepcionista solo ingresa el código — el servidor hace el resto.
+  // ─────────────────────────────────────────────────────────────────────────
   pagoForm: FormGroup = this.fb.group({
-    clienteId:      ['', Validators.required],
-    membresiaId:    ['', Validators.required],
-    metodoPago:     ['EFECTIVO', Validators.required],
-    descuento:      [0],
-    motivoDescuento: [''],
+    clienteId:   ['', Validators.required],
+    membresiaId: ['', Validators.required],
+    metodoPago:  ['EFECTIVO', Validators.required],
+    cuponCodigo: [''],   // opcional — vacío si no hay cupón
   });
 
   ngOnInit(): void {
-    // ✅ Ambas cargas en ngOnInit — van en paralelo
     this.cargarPagos();
     this.cargarClientes();
   }
 
   ngAfterViewInit(): void {
-    // ✅ Solo ViewChild aquí
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort      = this.sort;
-    // ← setTimeout eliminado
   }
 
   cargarPagos(): void {
@@ -125,14 +128,14 @@ export class Pagos implements OnInit, AfterViewInit {
   }
 
   abrirFormulario(): void {
-    this.pagoForm.reset({ metodoPago: 'EFECTIVO', descuento: 0 });
+    this.pagoForm.reset({ metodoPago: 'EFECTIVO' });
     this.membresiasCliente = [];
     this.mostrarFormulario = true;
   }
 
   cerrarFormulario(): void {
     this.mostrarFormulario = false;
-    this.pagoForm.reset({ metodoPago: 'EFECTIVO', descuento: 0 });
+    this.pagoForm.reset({ metodoPago: 'EFECTIVO' });
     this.membresiasCliente = [];
   }
 
@@ -141,21 +144,18 @@ export class Pagos implements OnInit, AfterViewInit {
     return this.membresiasCliente.find(m => m.id === membresiaId);
   }
 
-  getMontoFinal(): number {
-    const descuento = this.pagoForm.get('descuento')?.value ?? 0;
-    return (this.getMembresiaSeleccionada()?.planPrecio ?? 0) - descuento;
-  }
-
   guardar(): void {
     if (this.pagoForm.invalid) return;
     this.loading = true;
 
+    const { membresiaId, clienteId, metodoPago, cuponCodigo } = this.pagoForm.value;
+
     this.pagoService.registrar({
-      membresiaId:    this.pagoForm.value.membresiaId,
-      clienteId:      this.pagoForm.value.clienteId,
-      metodoPago:     this.pagoForm.value.metodoPago,
-      descuento:      this.pagoForm.value.descuento ?? 0,
-      motivoDescuento: this.pagoForm.value.motivoDescuento || undefined,
+      membresiaId,
+      clienteId,
+      metodoPago,
+      // solo enviamos cuponCodigo si el recepcionista ingresó algo
+      ...(cuponCodigo?.trim() ? { cuponCodigo: cuponCodigo.trim().toUpperCase() } : {}),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -177,29 +177,29 @@ export class Pagos implements OnInit, AfterViewInit {
   }
 
   anular(id: number): void {
-  this.confirmService
-    .warning(
-      'Anular pago',
-      'Esta acción revertirá el pago y notificará al sistema contable.',
-      'Sí, anular'
-    )
-    .pipe(
-      filter(Boolean),
-      switchMap(() => this.pagoService.anular(id)),
-      takeUntilDestroyed(this.destroyRef)
-    )
-    .subscribe({
-      next: () => {
-        this.snackBar.open('Pago anulado', 'Cerrar', { duration: 3000 });
-        this.cargarPagos();
-      },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'Error al anular', 'Cerrar', {
-          duration: 4000,
-        });
-      },
-    });
-}
+    this.confirmService
+      .warning(
+        'Anular pago',
+        'Esta acción revertirá el pago y notificará al sistema contable.',
+        'Sí, anular'
+      )
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.pagoService.anular(id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Pago anulado', 'Cerrar', { duration: 3000 });
+          this.cargarPagos();
+        },
+        error: (err) => {
+          this.snackBar.open(err.error?.message || 'Error al anular', 'Cerrar', {
+            duration: 4000,
+          });
+        },
+      });
+  }
 
   esAdmin(): boolean { return this.authService.hasRole('ADMIN'); }
 }
